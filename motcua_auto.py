@@ -35,7 +35,7 @@ class App:
         self.check_update_button.pack(anchor='se', padx=5, pady=5)
         
         # Tiêu đề
-        self.title_label = tk.Label(root, text="PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC\nHỆ THỐNG MỘT CỬA ĐIỆN TỬ", fg="red", font=self.title_font)
+        self.title_label = tk.Label(root, text="PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC TRÊN\nHỆ THỐNG MỘT CỬA ĐIỆN TỬ", fg="red", font=self.title_font)
         self.title_label.pack(pady=10)
         
 
