@@ -105,7 +105,7 @@ class App:
         else:
             application_path = os.path.dirname(os.path.abspath(__file__))
             
-        save_path = os.path.join(application_path, "motcua_auto.exe")
+        save_path = os.path.join(application_path, "Motcua_auto.exe")
         
         url = f"https://raw.githubusercontent.com/{repo_owner}/{repo_name}/main/{file_path}"
         
