@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC HỆ THỐNG MỘT CỬA ĐIỆN TỬ</title>
+</head>
+<body>
+    <h1>PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC TRÊN HỆ THỐNG MỘT CỬA ĐIỆN TỬ</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="file">Chọn file Excel:</label>
+        <input type="file" name="file" id="file">
+        <br>
+        <input type="checkbox" name="sync_ttc" id="sync_ttc">
+        <label for="sync_ttc">Đồng bộ Thủ Tục Chung</label><br>
+        <input type="checkbox" name="sync_dvc" id="sync_dvc">
+        <label for="sync_dvc">Đồng bộ Dịch Vụ Công</label><br>
+        <input type="checkbox" name="sync_linhvuc" id="sync_linhvuc">
+        <label for="sync_linhvuc">Đồng bộ Lĩnh Vực</label><br>
+        <input type="checkbox" name="config_holidays" id="config_holidays">
+        <label for="config_holidays">Cấu hình Ngày Nghỉ Lễ (cho năm sau)</label><br>
+        <button type="submit">START</button>
+    </form>
+    <br>
+    <form action="/download">
+        <button type="submit">Tải file mẫu</button>
+    </form>
+</body>
+</html>
