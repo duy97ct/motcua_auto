@@ -18,7 +18,7 @@ from urllib.parse import urljoin
 class App:
     def __init__(self, root):
         self.root = root
-        self.root.title("AUTOMATION")
+        self.root.title("PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC HỆ THỐNG MỘT CỬA ĐIỆN TỬ")
         self.root.geometry("700x450")
 
         self.file_path = ""
@@ -97,7 +97,7 @@ class App:
          # URL của tệp cập nhật trên GitHub
         repo_owner = "duy97ct"
         repo_name = "motcua_auto"
-        file_path = "motcua_auto.py"  # Đường dẫn tệp trên GitHub
+        file_path = "Motcua_auto.exe"  # Đường dẫn tệp trên GitHub
         
         # Đường dẫn lưu tệp trên hệ thống (cùng thư mục với file .exe)
         if getattr(sys, 'frozen', False):
@@ -105,7 +105,7 @@ class App:
         else:
             application_path = os.path.dirname(os.path.abspath(__file__))
             
-        save_path = os.path.join(application_path, "motcua_auto.py")
+        save_path = os.path.join(application_path, "Motcua_auto.exe")
         
         url = f"https://raw.githubusercontent.com/{repo_owner}/{repo_name}/main/{file_path}"
         
