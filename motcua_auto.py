@@ -18,7 +18,7 @@ from urllib.parse import urljoin
 class App:
     def __init__(self, root):
         self.root = root
-        self.root.title("PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC HỆ THỐNG MỘT CỬA ĐIỆN TỬ")
+        self.root.title("AUTOMATION")
         self.root.geometry("700x450")
 
         self.file_path = ""
