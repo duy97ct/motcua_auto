@@ -9,23 +9,25 @@ from datetime import datetime, timedelta
 import time
 import tkinter as tk
 import requests
+import subprocess
 from tkinter import filedialog, messagebox
 import threading
 import os
 import sys
+from tkinter import ttk
 from urllib.parse import urljoin
 
 class App:
     def __init__(self, root):
         self.root = root
         self.root.title("PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC HỆ THỐNG MỘT CỬA ĐIỆN TỬ")
-        self.root.geometry("700x450")
+        self.root.geometry("700x550")
 
         self.file_path = ""
         self.stop_flag = False
 
         # Thiết lập font chữ tổng thể
-        self.default_font = ("Helvetica", 12)
+        self.default_font = ("Helvetica", 13)
         self.button_font = ("Helvetica", 12, "bold")
         self.title_font = ("Helvetica", 16, "bold")
         self.signature_font = ("Helvetica",9)
@@ -55,22 +57,41 @@ class App:
         self.checkbox_frame = tk.Frame(root)
         self.checkbox_frame.pack(pady=10, padx=10, anchor='w')
 
-        self.checkbox_value3 = tk.IntVar()
-        self.checkbox_value4 = tk.IntVar()
-        self.checkbox_value5 = tk.IntVar()
-        self.checkbox_value6 = tk.IntVar()
+        self.checkbox_dongboTTC = tk.IntVar() #đồng bộ TTC
+        self.checkbox_dongboDVC = tk.IntVar() #đồng bộ DVC
+        self.checkbox_dongbolv = tk.IntVar() #đồng bộ lĩnh vực
+        self.checkbox_offnamsau = tk.IntVar() #Cấu hình nghỉ lễ năm sau
+        self.checkbox_copysovb = tk.IntVar() #sao chép sổ vb
+        self.holiday_year_choice = tk.StringVar(value="Năm sau") # Thêm biến cho drop-down
+        self.quytrinh = tk.StringVar()
 
-        self.checkbox1 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Thủ Tục Chung", variable=self.checkbox_value3, font=self.default_font)
+        self.checkbox1 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Thủ Tục Chung", variable=self.checkbox_dongboTTC, font=self.default_font)
         self.checkbox1.pack(anchor='w')
 
-        self.checkbox2 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Dịch Vụ Công", variable=self.checkbox_value4, font=self.default_font)
+        self.checkbox2 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Dịch Vụ Công", variable=self.checkbox_dongboDVC, font=self.default_font)
         self.checkbox2.pack(anchor='w')
 
-        self.checkbox4 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Lĩnh Vực", variable=self.checkbox_value6, font=self.default_font)
+        self.checkbox4 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Lĩnh Vực", variable=self.checkbox_dongbolv, font=self.default_font)
         self.checkbox4.pack(anchor='w')
+        
+        # Tạo frame con để chứa Checkbutton và drop-down menu cho "Cấu hình Ngày Nghỉ Lễ"
+        self.date_config_frame = tk.Frame(self.checkbox_frame)
+        self.date_config_frame.pack(anchor='w')
 
-        self.checkbox3 = tk.Checkbutton(self.checkbox_frame, text="Cấu hình Ngày Nghỉ Lễ (cho năm sau)", variable=self.checkbox_value5, font=self.default_font)
-        self.checkbox3.pack(anchor='w')
+        self.checkbox_offnamsau_var = tk.IntVar()
+        self.checkbox_offnamsau = tk.Checkbutton(self.date_config_frame, text="Cấu hình Ngày Nghỉ Lễ", variable=self.checkbox_offnamsau_var, font=self.default_font)
+        self.checkbox_offnamsau.pack(side=tk.LEFT)
+
+        self.year_menu = ttk.Combobox(self.date_config_frame, textvariable=self.holiday_year_choice, values=["Năm sau", "Năm nay"], font=self.default_font, state='readonly')
+        self.year_menu.pack(side=tk.LEFT)
+
+        # Đặt checkbox vào hàng dưới
+        self.checkbox5 = tk.Checkbutton(self.checkbox_frame, text="Sao chép Sổ Văn Bản", variable=self.checkbox_copysovb, font=self.default_font)
+        self.checkbox5.pack(anchor='w', pady=(1, 0))  # Sử dụng pady để tạo khoảng cách giữa các phần tử
+
+        self.checkbox6 = tk.Checkbutton(self.checkbox_frame, text="Cấu hình quy trình tự động", variable=self.checkbox_copysovb, font=self.default_font)
+        self.checkbox6.pack(anchor='w', pady=(1, 0))  # Sử dụng pady để tạo khoảng cách giữa các phần tử
+
 
         # Các nút điều khiển
         self.control_frame = tk.Frame(root)
@@ -82,9 +103,20 @@ class App:
         self.stop_button = tk.Button(self.control_frame, text="STOP", command=self.stop_automation, state=tk.DISABLED, font=self.button_font, fg="red")
         self.stop_button.grid(row=0, column=1, padx=5)
 
-        # Button to download sample file
-        self.download_button = tk.Button(root, text="Tải file mẫu", command=self.download_sample_file, font=self.button_font, fg="blue")
-        self.download_button.pack(pady=5)
+        # Khung chứa các nút tải file
+        self.download_frame = tk.Frame(root)
+        self.download_frame.pack(pady=5)
+
+        # Nút "Tải file mẫu"
+        self.download_button = tk.Button(self.download_frame, text="Tải file mẫu", command=self.download_sample_file, font=self.button_font, fg="blue")
+        self.download_button.pack(side=tk.LEFT, padx=5)
+
+        # Nút "Tải file quy trình"
+        self.download_workflow_button = tk.Button(self.download_frame, text="Tải mẫu quy trình", command=self.download_file_quytrinh, font=self.button_font, fg="green")
+        self.download_workflow_button.pack(side=tk.LEFT, padx=5)
+
+        
+
 
         # Chữ ký
         self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông",fg="purple", font=self.signature_font, anchor='e')
@@ -94,11 +126,11 @@ class App:
         
     
     def check_for_update(self):
-         # URL của tệp cập nhật trên GitHub
+        # URL của tệp cập nhật trên GitHub
         repo_owner = "duy97ct"
         repo_name = "motcua_auto"
-        file_path = "motcua_auto.py"  # Đường dẫn tệp trên GitHub
-        
+        file_path = "Motcua_auto.exe"  # Đường dẫn tệp trên GitHub
+
         # Đường dẫn lưu tệp trên hệ thống (cùng thư mục với file .exe)
         if getattr(sys, 'frozen', False):
             application_path = os.path.dirname(sys.executable)
@@ -107,36 +139,56 @@ class App:
             
         save_path = os.path.join(application_path, "Motcua_auto.exe")
         
-        url = f"https://raw.githubusercontent.com/{repo_owner}/{repo_name}/main/{file_path}"
+        # URL trực tiếp tới tệp .exe trên GitHub
+        url = f"https://github.com/{repo_owner}/{repo_name}/raw/main/{file_path}"
         
-        response = requests.get(url)
+        response = requests.get(url, stream=True)
         
         if response.status_code == 200:
             if messagebox.askyesno("Cập nhật", "Có bản cập nhật mới. Bạn có muốn tải xuống và cài đặt không?"):
                 with open(save_path, 'wb') as file:
-                    file.write(response.content)
+                    for chunk in response.iter_content(chunk_size=8192):
+                        file.write(chunk)
                 messagebox.showinfo("Thông báo", "Cập nhật thành công. Vui lòng khởi động lại ứng dụng.")
+                self.root.destroy()
             else:
                 messagebox.showinfo("Thông báo", "Đã hủy cập nhật.")
         else:
-            messagebox.showerror("Lỗi", "Không thể tải xuống bản cập nhật.")
+            messagebox.showerror("Lỗi", "Không thể tải tệp cập nhật. Vui lòng thử lại sau.")
+
 
     def download_and_replace_update(self):
         try:
+            # URL tải về tệp cập nhật .exe
+            update_url = "https://github.com/duy97ct/motcua_auto/raw/main/Motcua_auto.exe"
+            
+            # Đường dẫn tới tệp .exe hiện tại
+            current_exe_path = os.path.abspath(__file__)
+
+            # Tạo một tên tạm cho tệp tải về
+            temp_exe_path = current_exe_path + ".temp"
+
             # Tải xuống tệp cập nhật
-            update_url = "URL_TỚI_TỆP_CẬP_NHẬT"
             response = requests.get(update_url, stream=True)
             response.raise_for_status()
-            with open("update.exe", "wb") as f:
+
+            # Lưu tệp cập nhật tạm thời
+            with open(temp_exe_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
 
+            # Thay thế tệp hiện tại bằng tệp cập nhật
+            os.replace(temp_exe_path, current_exe_path)
+
             # Hiển thị thông báo và thoát ứng dụng
-            messagebox.showinfo("Cập nhật", "Đã tải xuống cập nhật. Vui lòng cài đặt lại ứng dụng.")
+            messagebox.showinfo("Cập nhật", "Đã tải xuống cập nhật. Vui lòng khởi động lại ứng dụng.")
             self.root.destroy()
+            
+            # Tùy chọn: Tự động khởi động lại ứng dụng
+            subprocess.Popen([current_exe_path])
 
         except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể tải xuống cập nhật: {e}")    
+            messagebox.showerror("Lỗi", f"Không thể tải cập nhật: {e}")   
 
     def open_file(self):
         self.file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
@@ -173,6 +225,7 @@ class App:
 
                 url = row['URL']
                 next_year = datetime.now().year +1
+                now_year = datetime.now().year
                 value1 = row['admin']
                 value2 = row['pass']
 
@@ -187,6 +240,9 @@ class App:
                 
                 # Đường dẫn đồng bộ lĩnh vực
                 value6 = url + "/group/guest/danh-muc?p_auth=LxgJHKS6&p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewDanhMucLinhVucMotCua"
+
+                # Đường dẫn sao chép sổ văn bản
+                value7 = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=saoChepDanhMucSoVanBan"
 
                 # Cấu hình nghỉ dương lịch
                 duonglich_from = row['off_duonglich_from'] #Nghỉ Dương Lịch từ
@@ -246,7 +302,7 @@ class App:
                 logout.send_keys(Keys.ENTER)
                 
                 #Thao tac dong bo thu tuc chung
-                if self.checkbox_value3.get():
+                if self.checkbox_dongboTTC.get():
                     print(f"Đang đồng bộ TTC cho hàng {index+1}")
                     driver.get(value3)
                     dongbo_ttc = WebDriverWait(driver, 10).until(
@@ -255,7 +311,7 @@ class App:
                     time.sleep(15)
                 
                 #Thao tac dong bo dich vu cong
-                if self.checkbox_value4.get():
+                if self.checkbox_dongboDVC.get():
                     print(f"Đang đồng bộ DVC cho hàng {index+1}")
                     driver.get(value4)
                     dongbo_dvc = WebDriverWait(driver, 10).until(
@@ -266,9 +322,25 @@ class App:
                         EC.element_to_be_clickable((By.XPATH, '//a[@onclick="dongBoThuTuc();"]')))
                     sync_button.click()
                     time.sleep(25)
+                    
+                #Thao tac sao chép sổ văn bản
+                if self.checkbox_copysovb.get():
+                    print(f"Đang copy sổ văn bản cho hàng {index+1}")
+                    driver.get(value7)
+                    copy_sovb_from = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_DanhMuc_WAR_ctonegateportlet_namCopy")))
+                    copy_sovb_from.send_keys(now_year)
+                    copy_sovb_to = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_DanhMuc_WAR_ctonegateportlet_namMoi")))
+                    copy_sovb_to.send_keys(next_year)
+                    # Tìm và nhấp vào nút có thuộc tính onclick
+                    copy_button = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, "btn-primary")))
+                    copy_button.click()
+                    time.sleep(8)
 
                 #Thao tác đồng bộ lĩnh vực
-                if self.checkbox_value6.get():
+                if self.checkbox_dongbolv.get():
                     print(f"Đang đồng bộ Lĩnh vực cho hàng {index+1}")
                     driver.get(value6)
                     dongbo_linhvuc = WebDriverWait(driver, 10).until(
@@ -276,8 +348,11 @@ class App:
                     dongbo_linhvuc.click()
                     time.sleep(7)
                 
-                #Thao tac cau hinh lich nghi le               
-                if self.checkbox_value5.get():
+                       
+                # Thao tác cấu hình nghỉ lễ
+                if self.checkbox_offnamsau_var.get():
+                    
+                    holiday_year = next_year if self.holiday_year_choice.get() == "Năm sau" else now_year
                     print(f"Đang cấu hình Ngày Nghỉ lễ cho hàng {index+1}")
                     driver.get(value5)
                     
@@ -286,7 +361,7 @@ class App:
                     tieude_duonglich = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlylichlamviec_WAR_ctonegatecoreportlet_eventName")))
                     
-                    holiday_text = f"Nghỉ Tết Dương Lịch năm {next_year}"
+                    holiday_text = f"Nghỉ Tết Dương Lịch năm {holiday_year}"
                     tieude_duonglich.send_keys(holiday_text)
                     
                     thoigian_duonglich_from = WebDriverWait(driver, 10).until(
@@ -306,7 +381,7 @@ class App:
                     tieude_nguyendan = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlylichlamviec_WAR_ctonegatecoreportlet_eventName")))
                     
-                    nguyendan_text = f"Nghỉ Tết Nguyên Đán năm {next_year}"
+                    nguyendan_text = f"Nghỉ Tết Nguyên Đán năm {holiday_year}"
                     tieude_nguyendan.send_keys(nguyendan_text)
                     
                     thoigian_nguyendan_from = WebDriverWait(driver, 10).until(
@@ -327,7 +402,7 @@ class App:
                     tieude_gioto = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlylichlamviec_WAR_ctonegatecoreportlet_eventName")))
                     
-                    gioto_text = f"Nghỉ Giỗ Tổ Hùng Vương 10/3 năm {next_year}"
+                    gioto_text = f"Nghỉ Giỗ Tổ Hùng Vương 10/3 năm {holiday_year}"
                     tieude_gioto.send_keys(gioto_text)
                     
                     thoigian_gioto_from = WebDriverWait(driver, 10).until(
@@ -347,7 +422,7 @@ class App:
                     tieude_giaiphong = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlylichlamviec_WAR_ctonegatecoreportlet_eventName")))
                     
-                    giaiphong_text = f"Nghỉ Lễ 30/4 và Quốc tế lao động 1/5 năm {next_year}"
+                    giaiphong_text = f"Nghỉ Lễ 30/4 và Quốc tế lao động 1/5 năm {holiday_year}"
                     tieude_giaiphong.send_keys(giaiphong_text)
                     
                     thoigian_giaiphong_from = WebDriverWait(driver, 10).until(
@@ -367,7 +442,7 @@ class App:
                     tieude_quockhanh = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlylichlamviec_WAR_ctonegatecoreportlet_eventName")))
                     
-                    quockhanh_text = f"Nghỉ Lễ Quốc Khánh 2/9 năm {next_year}"
+                    quockhanh_text = f"Nghỉ Lễ Quốc Khánh 2/9 năm {holiday_year}"
                     tieude_quockhanh.send_keys(quockhanh_text)
                     
                     thoigian_quockhanh_from = WebDriverWait(driver, 10).until(
@@ -385,6 +460,7 @@ class App:
                 logout_url = urljoin(driver.current_url, "/c/portal/logout")
                 driver.get(logout_url)
 
+                
         finally:
             driver.quit()
             self.stop_button.config(state=tk.DISABLED)
@@ -404,6 +480,23 @@ class App:
                 messagebox.showinfo("Thông báo", "Tải file mẫu thành công!")
             except Exception as e:
                 messagebox.showerror("Lỗi", f"Lỗi khi tải file mẫu: {e}")
+                
+                
+    def download_file_quytrinh(self):
+        # Specify the directory where the sample file is located
+        sample_file_quytrinh = os.path.join(sys._MEIPASS, "quytrinh.xlsx")
+
+        # Specify the directory where you want to save the downloaded file
+        save_path2 = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
+        if save_path2:
+            try:
+                # Copy the sample file to the specified directory
+                import shutil
+                shutil.copy(sample_file_quytrinh, save_path2)
+                messagebox.showinfo("Thông báo", "Tải file mẫu thành công!")
+            except Exception as e:
+                messagebox.showerror("Lỗi", f"Lỗi khi tải file mẫu: {e}")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
