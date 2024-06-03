@@ -2883,6 +2883,10 @@
    'C:\\Users\\NGUYEN '
    'DUY\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\openpyxl\\compat\\numbers.py',
    'PYMODULE'),
+  ('openpyxl.compat.product',
+   'C:\\Users\\NGUYEN '
+   'DUY\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\openpyxl\\compat\\product.py',
+   'PYMODULE'),
   ('openpyxl.compat.strings',
    'C:\\Users\\NGUYEN '
    'DUY\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\openpyxl\\compat\\strings.py',
@@ -3146,6 +3150,10 @@
   ('openpyxl.utils.cell',
    'C:\\Users\\NGUYEN '
    'DUY\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\openpyxl\\utils\\cell.py',
+   'PYMODULE'),
+  ('openpyxl.utils.dataframe',
+   'C:\\Users\\NGUYEN '
+   'DUY\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\openpyxl\\utils\\dataframe.py',
    'PYMODULE'),
   ('openpyxl.utils.datetime',
    'C:\\Users\\NGUYEN '
@@ -6019,6 +6027,10 @@
   ('tkinter.simpledialog',
    'C:\\Program '
    'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\simpledialog.py',
+   'PYMODULE'),
+  ('tkinter.ttk',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\\lib\\tkinter\\ttk.py',
    'PYMODULE'),
   ('tracemalloc',
    'C:\\Program '

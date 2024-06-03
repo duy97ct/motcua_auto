@@ -15,6 +15,8 @@ import threading
 import os
 import sys
 from tkinter import ttk
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
 from urllib.parse import urljoin
 
 class App:
@@ -63,7 +65,7 @@ class App:
         self.checkbox_offnamsau = tk.IntVar() #Cấu hình nghỉ lễ năm sau
         self.checkbox_copysovb = tk.IntVar() #sao chép sổ vb
         self.holiday_year_choice = tk.StringVar(value="Năm sau") # Thêm biến cho drop-down
-        self.quytrinh = tk.StringVar()
+        self.checkbox_quytrinh = tk.IntVar()
 
         self.checkbox1 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Thủ Tục Chung", variable=self.checkbox_dongboTTC, font=self.default_font)
         self.checkbox1.pack(anchor='w')
@@ -89,8 +91,8 @@ class App:
         self.checkbox5 = tk.Checkbutton(self.checkbox_frame, text="Sao chép Sổ Văn Bản", variable=self.checkbox_copysovb, font=self.default_font)
         self.checkbox5.pack(anchor='w', pady=(1, 0))  # Sử dụng pady để tạo khoảng cách giữa các phần tử
 
-        self.checkbox6 = tk.Checkbutton(self.checkbox_frame, text="Cấu hình quy trình tự động", variable=self.checkbox_copysovb, font=self.default_font)
-        self.checkbox6.pack(anchor='w', pady=(1, 0))  # Sử dụng pady để tạo khoảng cách giữa các phần tử
+        self.checkbox6 = tk.Checkbutton(self.checkbox_frame, text="Cấu hình quy trình tự động", variable=self.checkbox_quytrinh, font=self.default_font)
+        self.checkbox6.pack(anchor='w')  # Sử dụng pady để tạo khoảng cách giữa các phần tử
 
 
         # Các nút điều khiển
@@ -112,8 +114,8 @@ class App:
         self.download_button.pack(side=tk.LEFT, padx=5)
 
         # Nút "Tải file quy trình"
-        self.download_workflow_button = tk.Button(self.download_frame, text="Tải mẫu quy trình", command=self.download_file_quytrinh, font=self.button_font, fg="green")
-        self.download_workflow_button.pack(side=tk.LEFT, padx=5)
+        self.download_button_quytrinh = tk.Button(self.download_frame, text="Cấu hình quy trình", command=self.open_quy_trinh_window, font=self.button_font, fg="blue")
+        self.download_button_quytrinh.pack(side=tk.LEFT, padx=5)
 
         
 
@@ -122,7 +124,7 @@ class App:
         self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông",fg="purple", font=self.signature_font, anchor='e')
         self.signature_label.pack(side=tk.BOTTOM, padx=10, pady=10, anchor='se')
         
-
+    
         
     
     def check_for_update(self):
@@ -321,7 +323,7 @@ class App:
                     sync_button = WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.XPATH, '//a[@onclick="dongBoThuTuc();"]')))
                     sync_button.click()
-                    time.sleep(25)
+                    time.sleep(30)
                     
                 #Thao tac sao chép sổ văn bản
                 if self.checkbox_copysovb.get():
@@ -465,6 +467,121 @@ class App:
             driver.quit()
             self.stop_button.config(state=tk.DISABLED)
             print("ĐÃ HOÀN TẤT !!!")
+            
+            
+    def open_quy_trinh_window(self):
+        # Mở cửa sổ mới cho "CẤU HÌNH QUY TRÌNH"
+        self.quy_trinh_window = tk.Toplevel(self.root)
+        self.quy_trinh_window.title("CẤU HÌNH QUY TRÌNH")
+        self.quy_trinh_window.geometry("900x550")
+        
+        # Phần Quy trình
+        self.quy_trinh_frame = tk.Frame(self.quy_trinh_window)
+        self.quy_trinh_frame.pack(pady=50, padx=50, fill=tk.X)
+
+        # Trường nhập liệu cho Tên quy trình
+        tk.Label(self.quy_trinh_frame, text="Tên quy trình:", font=self.default_font).grid(row=0, column=0, padx=5, pady=5)
+        self.ten_quy_trinh = tk.Entry(self.quy_trinh_frame, font=self.default_font, width=50)
+        self.ten_quy_trinh.grid(row=0, column=1, padx=5, pady=5)
+
+        # Trường nhập liệu cho Bí danh quy trình
+        tk.Label(self.quy_trinh_frame, text="Bí danh quy trình:", font=self.default_font).grid(row=1, column=0, padx=5, pady=5)
+        self.bi_danh_quy_trinh = tk.Entry(self.quy_trinh_frame, font=self.default_font, width=50)
+        self.bi_danh_quy_trinh.grid(row=1, column=1, padx=5, pady=5)
+
+        # Phần Danh sách Form
+        self.danh_sach_form_frame = tk.Frame(self.quy_trinh_window)
+        self.danh_sach_form_frame.pack(pady=10, padx=10, fill=tk.X)
+
+        # Các tiêu đề cột cho Danh sách Form
+        tk.Label(self.danh_sach_form_frame, text="ID", font=self.default_font).grid(row=0, column=0, padx=0, pady=0, sticky='ew')
+        tk.Label(self.danh_sach_form_frame, text="Tên Form", font=self.default_font).grid(row=0, column=1, padx=0, pady=0, sticky='ew')
+        tk.Label(self.danh_sach_form_frame, text="Mã Action", font=self.default_font).grid(row=0, column=2, padx=5, pady=5, sticky='ew')
+        tk.Label(self.danh_sach_form_frame, text="Thời gian", font=self.default_font).grid(row=0, column=3, padx=5, pady=5, sticky='ew')
+        tk.Label(self.danh_sach_form_frame, text="Nhóm người dùng", font=self.default_font).grid(row=0, column=4, padx=5, pady=5, sticky='ew')
+
+        # Tạo mục đầu tiên trong Danh sách Form
+        self.form_entries = []
+        self.add_form_entry(1)
+
+        # Nút để thêm nhóm mới vào Danh sách Form
+        self.add_form_button = tk.Button(self.quy_trinh_window, text="Thêm 1 nhóm", command=self.add_form_group, font=self.button_font)
+        self.add_form_button.pack(pady=10)
+
+        # Nút Tải về file Excel
+        self.export_button = tk.Button(self.quy_trinh_window, text="Tải về", command=self.export_to_excel, font=self.button_font)
+        self.export_button.pack(pady=10)
+
+    def add_form_entry(self, id):
+        # Thêm mục mới vào Danh sách Form với ID
+        frame = tk.Frame(self.danh_sach_form_frame)
+        frame.grid(row=len(self.form_entries) + 1, columnspan=5, pady=5, padx=5)
+
+        # Các trường nhập liệu cho mỗi mục
+        tk.Label(frame, text=str(id), font=self.default_font).grid(row=0, column=0, padx=5, sticky='w')
+        ten_form_entry = tk.Entry(frame, font=self.default_font)
+        ten_form_entry.grid(row=0, column=1, padx=5, sticky='ew')
+
+        # Drop-down menu cho Mã Action
+        action_var = tk.StringVar()
+        action_menu = ttk.Combobox(frame, textvariable=action_var, values=["Thêm mới", "Chuyển xử lý", "Trình phê duyệt", "Chuyển ban hành", "Chuyển trả kết quả"], font=self.default_font, state='readonly')
+        action_menu.grid(row=0, column=2, padx=5)
+
+        thoi_gian_entry = tk.Entry(frame, font=self.default_font)
+        thoi_gian_entry.grid(row=0, column=3, padx=5)
+        nhom_nguoi_dung_entry = tk.Entry(frame, font=self.default_font)
+        nhom_nguoi_dung_entry.grid(row=0, column=4, padx=5)
+
+        # Lưu trữ các trường nhập liệu
+        self.form_entries.append((ten_form_entry, action_menu, thoi_gian_entry, nhom_nguoi_dung_entry))
+
+    def add_form_group(self):
+        # Tạo nhóm mới trong Danh sách Form
+        new_id = len(self.form_entries) + 1
+        self.add_form_entry(new_id)
+
+        # Đẩy nút "Thêm 1 nhóm" và "Tải về" xuống dưới
+        self.add_form_button.pack_forget()
+        self.export_button.pack_forget()
+        self.add_form_button.pack(pady=10)
+        self.export_button.pack(pady=10)
+
+   
+    def export_to_excel(self):
+        # Lấy giá trị Tên quy trình và Bí danh quy trình
+        ten_quy_trinh = self.ten_quy_trinh.get()
+        bi_danh_quy_trinh = self.bi_danh_quy_trinh.get()
+
+        # Xuất dữ liệu vào file Excel
+        quy_trinh_data = []
+        for i, entries in enumerate(self.form_entries):
+            ten_form = entries[0].get()
+            ma_action = entries[1].get()
+            thoi_gian = entries[2].get()
+            nhom_nguoi_dung = entries[3].get()
+            quy_trinh_data.append([i + 1, ten_form, ma_action, thoi_gian, nhom_nguoi_dung])
+
+        df = pd.DataFrame(quy_trinh_data, columns=["ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
+
+        # Ghi dữ liệu vào file Excel
+        with pd.ExcelWriter("quytrinh.xlsx", engine='openpyxl') as writer:
+            # Tạo workbook và worksheet mới
+            workbook = writer.book
+            worksheet = workbook.create_sheet(title='QuyTrinh')
+            writer.sheets['QuyTrinh'] = worksheet
+
+            # Ghi tên quy trình và bí danh vào đầu file
+            worksheet['A1'] = 'Tên quy trình'
+            worksheet['B1'] = ten_quy_trinh
+            worksheet['A2'] = 'Bí danh quy trình'
+            worksheet['B2'] = bi_danh_quy_trinh
+
+            # Ghi dữ liệu từ DataFrame vào file bắt đầu từ hàng thứ 4
+            for row in dataframe_to_rows(df, index=False, header=True):
+                worksheet.append(row)
+
+        # Thông báo hoàn thành
+        tk.messagebox.showinfo("Thông báo", "Dữ liệu đã được xuất vào file quytrinh.xlsx")
 
     def download_sample_file(self):
         # Specify the directory where the sample file is located
@@ -481,21 +598,6 @@ class App:
             except Exception as e:
                 messagebox.showerror("Lỗi", f"Lỗi khi tải file mẫu: {e}")
                 
-                
-    def download_file_quytrinh(self):
-        # Specify the directory where the sample file is located
-        sample_file_quytrinh = os.path.join(sys._MEIPASS, "quytrinh.xlsx")
-
-        # Specify the directory where you want to save the downloaded file
-        save_path2 = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
-        if save_path2:
-            try:
-                # Copy the sample file to the specified directory
-                import shutil
-                shutil.copy(sample_file_quytrinh, save_path2)
-                messagebox.showinfo("Thông báo", "Tải file mẫu thành công!")
-            except Exception as e:
-                messagebox.showerror("Lỗi", f"Lỗi khi tải file mẫu: {e}")
 
 
 if __name__ == "__main__":
