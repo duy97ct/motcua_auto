@@ -6,6 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from datetime import datetime, timedelta
+from openpyxl.styles import Font
 import time
 import tkinter as tk
 import requests
@@ -14,6 +15,7 @@ from tkinter import filedialog, messagebox
 import threading
 import os
 import sys
+from openpyxl.styles import Font
 from tkinter import ttk
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -502,13 +504,17 @@ class App:
         self.quy_trinh_frame = tk.LabelFrame(quy_trinh_window, text="Quy trình", font=self.default_font2)
         self.quy_trinh_frame.pack(fill="x", padx=10, pady=5)
 
-        tk.Label(self.quy_trinh_frame, text="Tên quy trình:", font=self.default_font2).grid(row=0, column=0, padx=5, pady=5, sticky='w')
+        tk.Label(self.quy_trinh_frame, text="Tên quy trình:", font=self.default_font2).grid(row=0, column=0, padx=0, pady=0, sticky='w')
         self.ten_quy_trinh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=60)
-        self.ten_quy_trinh_entry.grid(row=0, column=1, padx=5, pady=5)
+        self.ten_quy_trinh_entry.grid(row=0, column=1, padx=0.5, pady=0.5)
 
-        tk.Label(self.quy_trinh_frame, text="Bí danh quy trình:", font=self.default_font2).grid(row=1, column=0, padx=5, pady=5, sticky='w')
+        tk.Label(self.quy_trinh_frame, text="Bí danh quy trình:", font=self.default_font2).grid(row=1, column=0, padx=0, pady=0, sticky='w')
         self.bi_danh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=60)
-        self.bi_danh_entry.grid(row=1, column=1, padx=5, pady=5)
+        self.bi_danh_entry.grid(row=1, column=1, padx=0.5, pady=0.5)
+        
+        tk.Label(self.quy_trinh_frame, text="Gắn vào TTHC:", font=self.default_font2).grid(row=2, column=0, padx=0, pady=0, sticky='w')
+        self.tthc_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=60)
+        self.tthc_entry.grid(row=2, column=1, padx=0.5, pady=0.5)
 
         # Khung chứa Danh sách Form
         self.danh_sach_form_frame = tk.LabelFrame(quy_trinh_window, text="Danh sách Form", font=self.default_font2)
@@ -631,8 +637,9 @@ class App:
 
     def export_to_excel(self):
         ten_quy_trinh = self.ten_quy_trinh_entry.get()
-        bi_danh = self.bi_danh_entry.get()
-
+        bi_danh = self.bi_danh_entry.get() 
+        tthc = self.tthc_entry.get() 
+        
         quy_trinh_data = []
         for entry in self.form_entries:
             id = entry[0].cget("text")
@@ -640,7 +647,7 @@ class App:
             action = entry[2].get()
             thoi_gian = entry[3].get()
             nhom_nguoi_dung = entry[4].get()
-            quy_trinh_data.append([ten_quy_trinh, bi_danh, id, ten_form, action, thoi_gian, nhom_nguoi_dung])
+            quy_trinh_data.append([tthc,ten_quy_trinh, bi_danh, id, ten_form, action, thoi_gian, nhom_nguoi_dung])
 
         luan_chuyen_data = []
         for entry in self.luan_chuyen_entries:
@@ -648,7 +655,7 @@ class App:
             to_form = entry[3].get()
             luan_chuyen_data.append([from_form, to_form])
 
-        df_quy_trinh = pd.DataFrame(quy_trinh_data, columns=["Tên quy trình", "Bí danh", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
+        df_quy_trinh = pd.DataFrame(quy_trinh_data, columns=["TTHC","Tên quy trình", "Bí danh", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
         df_luan_chuyen = pd.DataFrame(luan_chuyen_data, columns=["Từ form", "Đến form"])
 
         wb = Workbook()
@@ -658,13 +665,15 @@ class App:
         # Thêm tên quy trình và bí danh vào tiêu đề
         ws_quy_trinh.append(["Tên quy trình:", ten_quy_trinh])
         ws_quy_trinh.append(["Bí danh:", bi_danh])
+        ws_quy_trinh.append(["Gắn vào TTHC:", tthc])
         ws_quy_trinh.append([])  # Thêm dòng trống để tách biệt
 
         for row in dataframe_to_rows(df_quy_trinh, index=False, header=True):
             ws_quy_trinh.append(row)
 
-        for cell in ws_quy_trinh[4]:  # In đậm tiêu đề
-            cell.font = cell.font.copy(bold=True)
+        
+        for cell in ws_quy_trinh[5]:  
+            cell.font = Font(bold=True)
 
         ws_luan_chuyen = wb.create_sheet(title="LuanChuyen")
         for row in dataframe_to_rows(df_luan_chuyen, index=False, header=True):
