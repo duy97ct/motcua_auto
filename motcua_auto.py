@@ -30,9 +30,12 @@ class App:
 
         # Thiết lập font chữ tổng thể
         self.default_font = ("Helvetica", 13)
+        self.default_font2 = ("Helvetica", 10)
         self.button_font = ("Helvetica", 12, "bold")
+        self.button_font2 = ("Helvetica", 10, "bold")
         self.title_font = ("Helvetica", 16, "bold")
         self.signature_font = ("Helvetica",9)
+        
 
         # Tạo nút "Check Update"
         self.check_update_button = tk.Button(root, text="Check Update", command=self.check_for_update)
@@ -97,7 +100,7 @@ class App:
         self.checkbox_quytrinh_frame.pack(anchor='w')
 
         self.checkbox_quytrinh_var = tk.IntVar()
-        self.checkbox_quytrinh = tk.Checkbutton(self.checkbox_quytrinh_frame, text="Cấu hình quy trình tự động", variable=self.checkbox_quytrinh_var, font=self.default_font)
+        self.checkbox_quytrinh = tk.Checkbutton(self.checkbox_quytrinh_frame, text="Cấu hình Quy Trình tự động", variable=self.checkbox_quytrinh_var, font=self.default_font)
         self.checkbox_quytrinh.pack(side=tk.LEFT)
 
         self.attach_button = tk.Button(self.checkbox_quytrinh_frame, text="Chọn quy trình", command=self.attach_file, font=self.default_font)
@@ -128,7 +131,7 @@ class App:
         self.download_button = tk.Button(self.download_frame, text="Tải file mẫu", command=self.download_sample_file, font=self.button_font, fg="blue")
         self.download_button.pack(side=tk.LEFT, padx=5)
 
-        # Nút "Tải file quy trình"
+        # Nút "Cấu hình quy trình"
         self.download_button_quytrinh = tk.Button(self.download_frame, text="Cấu hình quy trình", command=self.open_quy_trinh_window, font=self.button_font, fg="blue")
         self.download_button_quytrinh.pack(side=tk.LEFT, padx=5)
 
@@ -343,7 +346,7 @@ class App:
                     time.sleep(33)
                     
                 #Thao tac sao chép sổ văn bản
-                if self.checkbox_copysovb.get():
+                if self.checkbox_copysovb_var.get():
                     print(f"Đang copy sổ văn bản cho hàng {index+1}")
                     driver.get(value7)
                     copy_sovb_from = WebDriverWait(driver, 10).until(
@@ -485,121 +488,202 @@ class App:
             self.stop_button.config(state=tk.DISABLED)
             print("ĐÃ HOÀN TẤT !!!")
             
-            
     def open_quy_trinh_window(self):
-        # Mở cửa sổ mới cho "CẤU HÌNH QUY TRÌNH"
-        self.quy_trinh_window = tk.Toplevel(self.root)
-        self.quy_trinh_window.title("CẤU HÌNH QUY TRÌNH")
-        self.quy_trinh_window.geometry("900x550")
         
-        # Phần Quy trình
-        self.quy_trinh_frame = tk.Frame(self.quy_trinh_window)
-        self.quy_trinh_frame.pack(pady=50, padx=50, fill=tk.X)
+        quy_trinh_window = tk.Toplevel(self.root)
+        quy_trinh_window.title("CẤU HÌNH QUY TRÌNH")
+        quy_trinh_window.geometry("900x600")
 
-        # Trường nhập liệu cho Tên quy trình
-        tk.Label(self.quy_trinh_frame, text="Tên quy trình:", font=self.default_font).grid(row=0, column=0, padx=5, pady=5)
-        self.ten_quy_trinh = tk.Entry(self.quy_trinh_frame, font=self.default_font, width=50)
-        self.ten_quy_trinh.grid(row=0, column=1, padx=5, pady=5)
+        self.quy_trinh_data = []
+        self.form_entries = []  # Khởi tạo form_entries
+        self.luan_chuyen_entries = []  # Khởi tạo luan_chuyen_entries
 
-        # Trường nhập liệu cho Bí danh quy trình
-        tk.Label(self.quy_trinh_frame, text="Bí danh quy trình:", font=self.default_font).grid(row=1, column=0, padx=5, pady=5)
-        self.bi_danh_quy_trinh = tk.Entry(self.quy_trinh_frame, font=self.default_font, width=50)
-        self.bi_danh_quy_trinh.grid(row=1, column=1, padx=5, pady=5)
+        # Khung chứa Quy trình
+        self.quy_trinh_frame = tk.LabelFrame(quy_trinh_window, text="Quy trình", font=self.default_font2)
+        self.quy_trinh_frame.pack(fill="x", padx=10, pady=5)
 
-        # Phần Danh sách Form
-        self.danh_sach_form_frame = tk.Frame(self.quy_trinh_window)
-        self.danh_sach_form_frame.pack(pady=10, padx=10, fill=tk.X)
+        tk.Label(self.quy_trinh_frame, text="Tên quy trình:", font=self.default_font2).grid(row=0, column=0, padx=5, pady=5, sticky='w')
+        self.ten_quy_trinh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=60)
+        self.ten_quy_trinh_entry.grid(row=0, column=1, padx=5, pady=5)
 
-        # Các tiêu đề cột cho Danh sách Form
-        tk.Label(self.danh_sach_form_frame, text="ID", font=self.default_font).grid(row=0, column=0, padx=0, pady=0, sticky='ew')
-        tk.Label(self.danh_sach_form_frame, text="Tên Form", font=self.default_font).grid(row=0, column=1, padx=0, pady=0, sticky='ew')
-        tk.Label(self.danh_sach_form_frame, text="Mã Action", font=self.default_font).grid(row=0, column=2, padx=5, pady=5, sticky='ew')
-        tk.Label(self.danh_sach_form_frame, text="Thời gian", font=self.default_font).grid(row=0, column=3, padx=5, pady=5, sticky='ew')
-        tk.Label(self.danh_sach_form_frame, text="Nhóm người dùng", font=self.default_font).grid(row=0, column=4, padx=5, pady=5, sticky='ew')
+        tk.Label(self.quy_trinh_frame, text="Bí danh quy trình:", font=self.default_font2).grid(row=1, column=0, padx=5, pady=5, sticky='w')
+        self.bi_danh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=60)
+        self.bi_danh_entry.grid(row=1, column=1, padx=5, pady=5)
 
-        # Tạo mục đầu tiên trong Danh sách Form
-        self.form_entries = []
-        self.add_form_entry(1)
+        # Khung chứa Danh sách Form
+        self.danh_sach_form_frame = tk.LabelFrame(quy_trinh_window, text="Danh sách Form", font=self.default_font2)
+        self.danh_sach_form_frame.pack(fill="x", padx=10, pady=5)
 
-        # Nút để thêm nhóm mới vào Danh sách Form
-        self.add_form_button = tk.Button(self.quy_trinh_window, text="Thêm 1 dòng", command=self.add_form_group, font=self.button_font)
-        self.add_form_button.pack(pady=10)
+        # Thêm tiêu đề của các cột
+        headers = ["ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"]
+        for col, header in enumerate(headers):
+            tk.Label(self.danh_sach_form_frame, text=header, font=self.default_font2).grid(row=0, column=col, padx=5, pady=5)
 
-        # Nút Tải về file Excel
-        self.export_button = tk.Button(self.quy_trinh_window, text="Tải về", command=self.export_to_excel, font=self.button_font)
-        self.export_button.pack(pady=10)
+        self.add_form_entry()  # Thêm form entry đầu tiên
 
-    def add_form_entry(self, id):
-        # Thêm mục mới vào Danh sách Form với ID
-        frame = tk.Frame(self.danh_sach_form_frame)
-        frame.grid(row=len(self.form_entries) + 1, columnspan=5, pady=5, padx=5)
+        self.add_form_button = tk.Button(self.danh_sach_form_frame, text="Thêm 1 hàng", command=self.add_form_entry, font=self.button_font2, fg="purple")
+        self.add_form_button.grid(row=999, column=0, columnspan=5, pady=5)
 
-        # Các trường nhập liệu cho mỗi mục
-        tk.Label(frame, text=str(id), font=self.default_font).grid(row=0, column=0, padx=5, sticky='w')
-        ten_form_entry = tk.Entry(frame, font=self.default_font)
-        ten_form_entry.grid(row=0, column=1, padx=5, sticky='ew')
+        # Nút "Xong"
+        self.done_button = tk.Button(self.danh_sach_form_frame, text="Xong", command=self.save_form_state, font=self.button_font2, fg="green")
+        self.done_button.grid(row=999, column=4, columnspan=5, pady=5)
 
-        # Drop-down menu cho Mã Action
-        action_var = tk.StringVar()
-        action_menu = ttk.Combobox(frame, textvariable=action_var, values=["Thêm mới", "Chuyển xử lý", "Trình phê duyệt", "Chuyển ban hành", "Chuyển trả kết quả"], font=self.default_font, state='readonly')
-        action_menu.grid(row=0, column=2, padx=5)
+        # Khung chứa Danh sách Luân chuyển
+        self.danh_sach_luan_chuyen_frame = tk.LabelFrame(quy_trinh_window, text="Danh sách Luân chuyển", font=self.default_font2)
+        self.danh_sach_luan_chuyen_frame.pack(fill="x", padx=10, pady=5)
 
-        thoi_gian_entry = tk.Entry(frame, font=self.default_font)
-        thoi_gian_entry.grid(row=0, column=3, padx=5)
-        nhom_nguoi_dung_entry = tk.Entry(frame, font=self.default_font)
-        nhom_nguoi_dung_entry.grid(row=0, column=4, padx=5)
+        self.add_luan_chuyen_entry()  # Thêm luân chuyển entry đầu tiên
 
-        # Lưu trữ các trường nhập liệu
-        self.form_entries.append((ten_form_entry, action_menu, thoi_gian_entry, nhom_nguoi_dung_entry))
+        self.add_luan_chuyen_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Thêm 1 hàng", command=self.add_luan_chuyen_entry, font=self.button_font2, fg="purple")
+        self.add_luan_chuyen_button.grid(row=999, column=0, columnspan=3, pady=5)
 
-    def add_form_group(self):
-        # Tạo nhóm mới trong Danh sách Form
-        new_id = len(self.form_entries) + 1
-        self.add_form_entry(new_id)
+        # Nút tải về
+        self.download_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Tải về", command=self.export_to_excel, font=self.button_font2, fg="blue")
+        # self.download_button.pack(pady=5) # nút Tải về nằm rời bên dưới
+        self.download_button.grid(row=999, column=3, columnspan=5, pady=5)
 
-        # Đẩy nút "Thêm 1 nhóm" và "Tải về" xuống dưới
-        self.add_form_button.pack_forget()
-        self.export_button.pack_forget()
-        self.add_form_button.pack(pady=10)
-        self.export_button.pack(pady=10)
+    def add_form_entry(self, id=None):
+        if id is None:
+            id = len(self.form_entries) + 1
 
-   
+        row = len(self.form_entries) + 1
+
+        id_label = tk.Label(self.danh_sach_form_frame, text=str(id), font=self.default_font2)
+        id_label.grid(row=row, column=0, padx=0.5, pady=0.5)
+
+        ten_form_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
+        ten_form_entry.grid(row=row, column=1, padx=0.5, pady=0.5)
+
+        action_menu = ttk.Combobox(self.danh_sach_form_frame, values=["Thêm mới", "Chuyển xử lý", "Trình phê duyệt", "Chuyển ban hành", "Chuyển trả kết quả"], font=self.default_font2, state='readonly')
+        action_menu.grid(row=row, column=2, padx=0.5, pady=0.5)
+
+        thoi_gian_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
+        thoi_gian_entry.grid(row=row, column=3, padx=0.5, pady=0.5)
+
+        nhom_nguoi_dung_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
+        nhom_nguoi_dung_entry.grid(row=row, column=4, padx=0.5, pady=0.5)
+
+        delete_button = tk.Button(self.danh_sach_form_frame, text="Xóa", command=lambda: self.delete_form_entry(id), font=self.button_font2, fg="red")
+        delete_button.grid(row=row, column=5, padx=0.5, pady=0.5)
+
+        self.form_entries.append((id_label, ten_form_entry, action_menu, thoi_gian_entry, nhom_nguoi_dung_entry, delete_button))
+        self.update_luan_chuyen_menus()
+
+    def delete_form_entry(self, id):
+        for entry in self.form_entries:
+            if entry[0].cget("text") == str(id):
+                for widget in entry:
+                    widget.destroy()
+                self.form_entries.remove(entry)
+                break
+        self.update_luan_chuyen_menus()
+        self.reorder_form_entries()
+
+    def reorder_form_entries(self):
+        for idx, entry in enumerate(self.form_entries):
+            entry[0].config(text=str(idx + 1))
+            for widget in entry:
+                widget.grid_configure(row=idx + 1)
+
+    def add_luan_chuyen_entry(self):
+        row = len(self.luan_chuyen_entries) + 1
+
+        from_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Từ form", font=self.default_font2)
+        from_form_label.grid(row=row, column=0, padx=0.5, pady=0.5)
+
+        from_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        from_form_menu.grid(row=row, column=1, padx=0.5, pady=0.5)
+
+        to_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến form", font=self.default_font2)
+        to_form_label.grid(row=row, column=2, padx=0.5, pady=0.5)
+
+        to_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        to_form_menu.grid(row=row, column=3, padx=0.5, pady=0.5)
+
+        delete_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Xóa", command=lambda: self.delete_luan_chuyen_entry(row), font=self.button_font2, fg="red")
+        delete_button.grid(row=row, column=4, padx=0.5, pady=0.5)
+
+        self.luan_chuyen_entries.append((from_form_label, from_form_menu, to_form_label, to_form_menu, delete_button))
+
+    def delete_luan_chuyen_entry(self, row):
+        for entry in self.luan_chuyen_entries:
+            if entry[0].grid_info()["row"] == row:
+                for widget in entry:
+                    widget.destroy()
+                self.luan_chuyen_entries.remove(entry)
+                break
+        self.reorder_luan_chuyen_entries()
+
+    def reorder_luan_chuyen_entries(self):
+        for idx, entry in enumerate(self.luan_chuyen_entries):
+            for widget in entry:
+                widget.grid_configure(row=idx + 1)
+
+    def update_luan_chuyen_menus(self):
+        form_names = [form[1].get() for form in self.form_entries]
+        for entry in self.luan_chuyen_entries:
+            entry[1]['values'] = form_names
+            entry[3]['values'] = form_names
+
+    def save_form_state(self):
+        self.update_luan_chuyen_menus()
+        messagebox.showinfo("Thông báo", "Trạng thái của danh sách Form đã được lưu và cập nhật danh sách luân chuyển.")
+
     def export_to_excel(self):
-        # Lấy giá trị Tên quy trình và Bí danh quy trình
-        ten_quy_trinh = self.ten_quy_trinh.get()
-        bi_danh_quy_trinh = self.bi_danh_quy_trinh.get()
+        ten_quy_trinh = self.ten_quy_trinh_entry.get()
+        bi_danh = self.bi_danh_entry.get()
 
-        # Xuất dữ liệu vào file Excel
         quy_trinh_data = []
-        for i, entries in enumerate(self.form_entries):
-            ten_form = entries[0].get()
-            ma_action = entries[1].get()
-            thoi_gian = entries[2].get()
-            nhom_nguoi_dung = entries[3].get()
-            quy_trinh_data.append([ten_quy_trinh, bi_danh_quy_trinh, i + 1, ten_form, ma_action, thoi_gian, nhom_nguoi_dung])
+        for entry in self.form_entries:
+            id = entry[0].cget("text")
+            ten_form = entry[1].get()
+            action = entry[2].get()
+            thoi_gian = entry[3].get()
+            nhom_nguoi_dung = entry[4].get()
+            quy_trinh_data.append([ten_quy_trinh, bi_danh, id, ten_form, action, thoi_gian, nhom_nguoi_dung])
 
-        df = pd.DataFrame(quy_trinh_data, columns=["Tên quy trình", "Bí danh", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
+        luan_chuyen_data = []
+        for entry in self.luan_chuyen_entries:
+            from_form = entry[1].get()
+            to_form = entry[3].get()
+            luan_chuyen_data.append([from_form, to_form])
 
-        # Ghi dữ liệu vào file Excel
-        with pd.ExcelWriter("quytrinh.xlsx", engine='openpyxl') as writer:
-            # Tạo workbook và worksheet mới
-            workbook = writer.book
-            worksheet = workbook.create_sheet(title='QuyTrinh')
-            writer.sheets['QuyTrinh'] = worksheet
+        df_quy_trinh = pd.DataFrame(quy_trinh_data, columns=["Tên quy trình", "Bí danh", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
+        df_luan_chuyen = pd.DataFrame(luan_chuyen_data, columns=["Từ form", "Đến form"])
 
-            # Ghi tên quy trình và bí danh vào đầu file
-            # worksheet['A1'] = 'Tên quy trình'
-            # worksheet['B1'] = ten_quy_trinh
-            # worksheet['A2'] = 'Bí danh quy trình'
-            # worksheet['B2'] = bi_danh_quy_trinh
+        wb = Workbook()
+        ws_quy_trinh = wb.active
+        ws_quy_trinh.title = "QuyTrinh"
 
-            # Ghi dữ liệu từ DataFrame vào file bắt đầu từ hàng thứ 4
-            for row in dataframe_to_rows(df, index=False, header=True):
-                worksheet.append(row)
+        # Thêm tên quy trình và bí danh vào tiêu đề
+        ws_quy_trinh.append(["Tên quy trình:", ten_quy_trinh])
+        ws_quy_trinh.append(["Bí danh:", bi_danh])
+        ws_quy_trinh.append([])  # Thêm dòng trống để tách biệt
 
-        # Thông báo hoàn thành
-        tk.messagebox.showinfo("Thông báo", "Dữ liệu đã được xuất vào file quytrinh.xlsx")
+        for row in dataframe_to_rows(df_quy_trinh, index=False, header=True):
+            ws_quy_trinh.append(row)
 
+        for cell in ws_quy_trinh[4]:  # In đậm tiêu đề
+            cell.font = cell.font.copy(bold=True)
+
+        ws_luan_chuyen = wb.create_sheet(title="LuanChuyen")
+        for row in dataframe_to_rows(df_luan_chuyen, index=False, header=True):
+            ws_luan_chuyen.append(row)
+
+        for cell in ws_luan_chuyen[1]:
+            cell.font = cell.font.copy(bold=True)
+
+        file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
+        if file_path:
+            wb.save(file_path)
+            messagebox.showinfo("Thông báo", f"File đã được lưu tại {file_path}")
+
+    def attach_file(self):
+        self.attached_file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
+        if self.attached_file_path:
+            self.attached_file_label.config(text=self.attached_file_path)
+            messagebox.showinfo("Thông báo", f"File đã được đính kèm: {self.attached_file_path}")
+    
     def download_sample_file(self):
         # Specify the directory where the sample file is located
         sample_file_path = os.path.join(sys._MEIPASS, "data.xlsx")
