@@ -588,13 +588,13 @@ class App:
     def add_luan_chuyen_entry(self):
         row = len(self.luan_chuyen_entries) + 1
 
-        from_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Từ form", font=self.default_font2)
+        from_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Từ Form", font=self.default_font2)
         from_form_label.grid(row=row, column=0, padx=0.5, pady=0.5)
 
         from_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
         from_form_menu.grid(row=row, column=1, padx=0.5, pady=0.5)
 
-        to_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến form", font=self.default_font2)
+        to_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến Form", font=self.default_font2)
         to_form_label.grid(row=row, column=2, padx=0.5, pady=0.5)
 
         to_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
