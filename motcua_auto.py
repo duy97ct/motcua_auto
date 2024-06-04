@@ -6,7 +6,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from datetime import datetime, timedelta
-from openpyxl.styles import Font
 import time
 import tkinter as tk
 import requests
@@ -559,7 +558,7 @@ class App:
         id_label = tk.Label(self.danh_sach_form_frame, text=str(id), font=self.default_font2)
         id_label.grid(row=row, column=0, padx=0.5, pady=0.5)
 
-        ten_form_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
+        ten_form_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2, width=40)
         ten_form_entry.grid(row=row, column=1, padx=0.5, pady=0.5)
 
         action_menu = ttk.Combobox(self.danh_sach_form_frame, values=["Thêm mới", "Chuyển xử lý", "Trình phê duyệt", "Chuyển ban hành", "Chuyển trả kết quả"], font=self.default_font2, state='readonly')
