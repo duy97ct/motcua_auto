@@ -71,16 +71,16 @@ class App:
         self.checkbox_copysovb = tk.IntVar() #sao chép sổ vb
         self.holiday_year_choice = tk.StringVar(value="Năm sau") # Thêm biến cho drop-down
         self.checkbox_quytrinh = tk.IntVar()
-
+        
+        self.checkbox4 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Lĩnh Vực", variable=self.checkbox_dongbolv, font=self.default_font)
+        self.checkbox4.pack(anchor='w')
+        
         self.checkbox1 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Thủ Tục Chung", variable=self.checkbox_dongboTTC, font=self.default_font)
         self.checkbox1.pack(anchor='w')
 
         self.checkbox2 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Dịch Vụ Công", variable=self.checkbox_dongboDVC, font=self.default_font)
         self.checkbox2.pack(anchor='w')
 
-        self.checkbox4 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Lĩnh Vực", variable=self.checkbox_dongbolv, font=self.default_font)
-        self.checkbox4.pack(anchor='w')
-        
         # Tạo frame con để chứa Checkbutton và drop-down menu cho "Cấu hình Ngày Nghỉ Lễ"
         self.date_config_frame = tk.Frame(self.checkbox_frame)
         self.date_config_frame.pack(anchor='w')
@@ -115,6 +115,19 @@ class App:
         # Biến lưu đường dẫn tệp đính kèm
         self.attached_file_path = None
         
+        # Khung chứa các nút tải file
+        self.download_frame = tk.Frame(root)
+        self.download_frame.pack(pady=5)
+
+        # Nút "Tải file mẫu"
+        self.download_button = tk.Button(self.download_frame, text="Tải file mẫu", command=self.download_sample_file, font=self.button_font, fg="blue")
+        self.download_button.pack(side=tk.LEFT, padx=5)
+
+        # Nút "Cấu hình quy trình"
+        self.download_button_quytrinh = tk.Button(self.download_frame, text="Cấu hình quy trình", command=self.open_quy_trinh_window, font=self.button_font, fg="brown")
+        self.download_button_quytrinh.pack(side=tk.LEFT, padx=5)
+
+        
         # Các nút điều khiển
         self.control_frame = tk.Frame(root)
         self.control_frame.pack(pady=10)
@@ -125,17 +138,6 @@ class App:
         self.stop_button = tk.Button(self.control_frame, text="STOP", command=self.stop_automation, state=tk.DISABLED, font=self.button_font, fg="red")
         self.stop_button.grid(row=0, column=1, padx=5)
 
-        # Khung chứa các nút tải file
-        self.download_frame = tk.Frame(root)
-        self.download_frame.pack(pady=5)
-
-        # Nút "Tải file mẫu"
-        self.download_button = tk.Button(self.download_frame, text="Tải file mẫu", command=self.download_sample_file, font=self.button_font, fg="blue")
-        self.download_button.pack(side=tk.LEFT, padx=5)
-
-        # Nút "Cấu hình quy trình"
-        self.download_button_quytrinh = tk.Button(self.download_frame, text="Cấu hình quy trình", command=self.open_quy_trinh_window, font=self.button_font, fg="blue")
-        self.download_button_quytrinh.pack(side=tk.LEFT, padx=5)
 
         # Chữ ký
         self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông",fg="purple", font=self.signature_font, anchor='e')
@@ -494,7 +496,7 @@ class App:
         
         quy_trinh_window = tk.Toplevel(self.root)
         quy_trinh_window.title("CẤU HÌNH QUY TRÌNH")
-        quy_trinh_window.geometry("900x600")
+        quy_trinh_window.geometry("1000x600")
 
         self.quy_trinh_data = []
         self.form_entries = []  # Khởi tạo form_entries
@@ -512,9 +514,9 @@ class App:
         self.bi_danh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=60)
         self.bi_danh_entry.grid(row=1, column=1, padx=0.5, pady=0.5)
         
-        tk.Label(self.quy_trinh_frame, text="Gắn vào TTHC:", font=self.default_font2).grid(row=2, column=0, padx=0, pady=0, sticky='w')
-        self.tthc_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=60)
-        self.tthc_entry.grid(row=2, column=1, padx=0.5, pady=0.5)
+        tk.Label(self.quy_trinh_frame, text="Gắn vào TTHC:", font=self.default_font2).grid(row=0, column=2, padx=5, pady=5, sticky='w')
+        self.tthc_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=30)
+        self.tthc_entry.grid(row=0, column=3, padx=0.5, pady=0.5)
 
         # Khung chứa Danh sách Form
         self.danh_sach_form_frame = tk.LabelFrame(quy_trinh_window, text="Danh sách Form", font=self.default_font2)
