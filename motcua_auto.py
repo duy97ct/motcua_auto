@@ -592,45 +592,7 @@ class App:
             for widget in entry:
                 widget.grid_configure(row=idx + 1)
 
-    # def add_luan_chuyen_entry(self):
-    #     row = len(self.luan_chuyen_entries) + 1
 
-    #     from_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Từ Form", font=self.default_font2)
-    #     from_form_label.grid(row=row, column=0, padx=0.5, pady=0.5)
-
-    #     from_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
-    #     from_form_menu.grid(row=row, column=1, padx=0.5, pady=0.5)
-
-    #     to_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến Form", font=self.default_font2)
-    #     to_form_label.grid(row=row, column=2, padx=0.5, pady=0.5)
-
-    #     to_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
-    #     to_form_menu.grid(row=row, column=3, padx=0.5, pady=0.5)
-
-    #     delete_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Xóa", command=lambda: self.delete_luan_chuyen_entry(row), font=self.button_font2, fg="red")
-    #     delete_button.grid(row=row, column=4, padx=0.5, pady=0.5)
-
-    #     self.luan_chuyen_entries.append((from_form_label, from_form_menu, to_form_label, to_form_menu, delete_button))
-
-    # def delete_luan_chuyen_entry(self, row):
-    #     for entry in self.luan_chuyen_entries:
-    #         if entry[0].grid_info()["row"] == row:
-    #             for widget in entry:
-    #                 widget.destroy()
-    #             self.luan_chuyen_entries.remove(entry)
-    #             break
-    #     self.reorder_luan_chuyen_entries()
-
-    # def reorder_luan_chuyen_entries(self):
-    #     for idx, entry in enumerate(self.luan_chuyen_entries):
-    #         for widget in entry:
-    #             widget.grid_configure(row=idx + 1)
-
-    # def update_luan_chuyen_menus(self):
-    #     form_names = [form[1].get() for form in self.form_entries]
-    #     for entry in self.luan_chuyen_entries:
-    #         entry[1]['values'] = form_names
-    #         entry[3]['values'] = form_names
     
     
     def add_luan_chuyen_entry(self):
@@ -703,7 +665,7 @@ class App:
             action = entry[2].get()
             thoi_gian = entry[3].get()
             nhom_nguoi_dung = entry[4].get()
-            quy_trinh_data.append([tthc,ten_quy_trinh, bi_danh, id, ten_form, action, thoi_gian, nhom_nguoi_dung])
+            quy_trinh_data.append([tthc,ten_quy_trinh, id, ten_form, action, thoi_gian, nhom_nguoi_dung])
 
         luan_chuyen_data = []
         for entry in self.luan_chuyen_entries:
@@ -713,7 +675,7 @@ class App:
             to_form3 = entry[7].get()
             luan_chuyen_data.append([from_form, to_form, to_form2, to_form3])
 
-        df_quy_trinh = pd.DataFrame(quy_trinh_data, columns=["TTHC","Tên quy trình", "Bí danh", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
+        df_quy_trinh = pd.DataFrame(quy_trinh_data, columns=["TTHC","Tên quy trình", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
         df_luan_chuyen = pd.DataFrame(luan_chuyen_data, columns=["Từ Form", "Đến Form", "Đến Form 2", "Đến Form 3"])
 
         wb = Workbook()
@@ -728,16 +690,21 @@ class App:
 
         for row in dataframe_to_rows(df_quy_trinh, index=False, header=True):
             ws_quy_trinh.append(row)
-
-        
+       
         for cell in ws_quy_trinh[5]:  
             cell.font = Font(bold=True)
 
         ws_luan_chuyen = wb.create_sheet(title="LuanChuyen")
+        
+        ws_luan_chuyen.append(["Tên quy trình:", ten_quy_trinh])
+        ws_luan_chuyen.append(["Bí danh:", bi_danh])
+        ws_luan_chuyen.append(["Gắn vào TTHC:", tthc])
+        ws_luan_chuyen.append([])  # Thêm dòng trống để tách biệt
+        
         for row in dataframe_to_rows(df_luan_chuyen, index=False, header=True):
             ws_luan_chuyen.append(row)
 
-        for cell in ws_luan_chuyen[1]:
+        for cell in ws_luan_chuyen[5]:
             cell.font = Font(bold=True)
 
         file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
