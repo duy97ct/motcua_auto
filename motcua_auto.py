@@ -592,6 +592,47 @@ class App:
             for widget in entry:
                 widget.grid_configure(row=idx + 1)
 
+    # def add_luan_chuyen_entry(self):
+    #     row = len(self.luan_chuyen_entries) + 1
+
+    #     from_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Từ Form", font=self.default_font2)
+    #     from_form_label.grid(row=row, column=0, padx=0.5, pady=0.5)
+
+    #     from_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+    #     from_form_menu.grid(row=row, column=1, padx=0.5, pady=0.5)
+
+    #     to_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến Form", font=self.default_font2)
+    #     to_form_label.grid(row=row, column=2, padx=0.5, pady=0.5)
+
+    #     to_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+    #     to_form_menu.grid(row=row, column=3, padx=0.5, pady=0.5)
+
+    #     delete_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Xóa", command=lambda: self.delete_luan_chuyen_entry(row), font=self.button_font2, fg="red")
+    #     delete_button.grid(row=row, column=4, padx=0.5, pady=0.5)
+
+    #     self.luan_chuyen_entries.append((from_form_label, from_form_menu, to_form_label, to_form_menu, delete_button))
+
+    # def delete_luan_chuyen_entry(self, row):
+    #     for entry in self.luan_chuyen_entries:
+    #         if entry[0].grid_info()["row"] == row:
+    #             for widget in entry:
+    #                 widget.destroy()
+    #             self.luan_chuyen_entries.remove(entry)
+    #             break
+    #     self.reorder_luan_chuyen_entries()
+
+    # def reorder_luan_chuyen_entries(self):
+    #     for idx, entry in enumerate(self.luan_chuyen_entries):
+    #         for widget in entry:
+    #             widget.grid_configure(row=idx + 1)
+
+    # def update_luan_chuyen_menus(self):
+    #     form_names = [form[1].get() for form in self.form_entries]
+    #     for entry in self.luan_chuyen_entries:
+    #         entry[1]['values'] = form_names
+    #         entry[3]['values'] = form_names
+    
+    
     def add_luan_chuyen_entry(self):
         row = len(self.luan_chuyen_entries) + 1
 
@@ -607,10 +648,22 @@ class App:
         to_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
         to_form_menu.grid(row=row, column=3, padx=0.5, pady=0.5)
 
-        delete_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Xóa", command=lambda: self.delete_luan_chuyen_entry(row), font=self.button_font2, fg="red")
-        delete_button.grid(row=row, column=4, padx=0.5, pady=0.5)
+        to_form_2_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến Form 2", font=self.default_font2)
+        to_form_2_label.grid(row=row, column=4, padx=0.5, pady=0.5)
 
-        self.luan_chuyen_entries.append((from_form_label, from_form_menu, to_form_label, to_form_menu, delete_button))
+        to_form_2_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        to_form_2_menu.grid(row=row, column=5, padx=0.5, pady=0.5)
+        
+        to_form_3_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến Form 3", font=self.default_font2)
+        to_form_3_label.grid(row=row, column=6, padx=0.5, pady=0.5)
+
+        to_form_3_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        to_form_3_menu.grid(row=row, column=7, padx=0.5, pady=0.5)
+
+        delete_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Xóa", command=lambda: self.delete_luan_chuyen_entry(row), font=self.button_font2, fg="red")
+        delete_button.grid(row=row, column=8, padx=0.5, pady=0.5)
+
+        self.luan_chuyen_entries.append((from_form_label, from_form_menu, to_form_label, to_form_menu, to_form_2_label, to_form_2_menu, to_form_3_label, to_form_3_menu, delete_button))
 
     def delete_luan_chuyen_entry(self, row):
         for entry in self.luan_chuyen_entries:
@@ -631,6 +684,8 @@ class App:
         for entry in self.luan_chuyen_entries:
             entry[1]['values'] = form_names
             entry[3]['values'] = form_names
+            entry[5]['values'] = form_names
+            entry[7]['values'] = form_names
 
     def save_form_state(self):
         self.update_luan_chuyen_menus()
@@ -654,10 +709,12 @@ class App:
         for entry in self.luan_chuyen_entries:
             from_form = entry[1].get()
             to_form = entry[3].get()
-            luan_chuyen_data.append([from_form, to_form])
+            to_form2 = entry[5].get()
+            to_form3 = entry[7].get()
+            luan_chuyen_data.append([from_form, to_form, to_form2, to_form3])
 
         df_quy_trinh = pd.DataFrame(quy_trinh_data, columns=["TTHC","Tên quy trình", "Bí danh", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
-        df_luan_chuyen = pd.DataFrame(luan_chuyen_data, columns=["Từ form", "Đến form"])
+        df_luan_chuyen = pd.DataFrame(luan_chuyen_data, columns=["Từ Form", "Đến Form", "Đến Form 2", "Đến Form 3"])
 
         wb = Workbook()
         ws_quy_trinh = wb.active
@@ -681,7 +738,7 @@ class App:
             ws_luan_chuyen.append(row)
 
         for cell in ws_luan_chuyen[1]:
-            cell.font = cell.font.copy(bold=True)
+            cell.font = Font(bold=True)
 
         file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
         if file_path:
