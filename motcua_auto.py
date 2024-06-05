@@ -17,6 +17,7 @@ import sys
 from openpyxl.styles import Font
 from tkinter import ttk
 from openpyxl import Workbook
+from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from urllib.parse import urljoin
 
@@ -32,7 +33,7 @@ class App:
         # Thiết lập font chữ tổng thể
         self.default_font = ("Helvetica", 13)
         self.default_font2 = ("Helvetica", 10)
-        self.button_font = ("Helvetica", 12, "bold")
+        self.button_font = ("Helvetica", 13, "bold")
         self.button_font2 = ("Helvetica", 10, "bold")
         self.title_font = ("Helvetica", 16, "bold")
         self.signature_font = ("Helvetica",9)
@@ -142,12 +143,20 @@ class App:
         self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông",fg="purple", font=self.signature_font, anchor='e')
         self.signature_label.pack(side=tk.BOTTOM, padx=10, pady=10, anchor='se')
         
-    def attach_file(self):
-        # Chọn file để đính kèm
-        file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
-        if file_path:
-            self.attached_file_path = file_path
-            self.attached_file_label.config(text=file_path)
+
+    
+
+            
+    
+    def read_quy_trinh_file(self):
+        try:
+            workbook = load_workbook(self.attached_file_path)
+            sheet = workbook["QuyTrinh"]
+            self.quy_trinh_data = pd.DataFrame(sheet.values)
+            messagebox.showinfo("Thông báo", "Đọc file quy trình thành công!")
+        except Exception as e:
+            messagebox.showerror("Lỗi", f"Lỗi khi đọc file quy trình: {str(e)}")
+            self.quy_trinh_data = None
         
     
     def check_for_update(self):
@@ -231,6 +240,8 @@ class App:
         self.stop_flag = True
 
     def start_automation(self):
+    
+        
         # Xác định đường dẫn của ChromeDriver
         if getattr(sys, 'frozen', False):
             chromedriver_path = os.path.join(sys._MEIPASS, "chromedriver.exe")
@@ -239,9 +250,11 @@ class App:
 
         # Khởi tạo trình duyệt
         driver = webdriver.Chrome(chromedriver_path)
+        
         df = pd.read_excel(self.file_path)
-
+        
         try:
+            
             for index, row in df.iterrows():
                 print(f"Processing row {index+1}")
                 if self.stop_flag:
@@ -325,6 +338,57 @@ class App:
                 logout.send_keys(value2)
 
                 logout.send_keys(Keys.ENTER)
+                
+                # Đảm bảo người dùng đã đính kèm file quy trình nếu checkbox được chọn
+                if self.checkbox_quytrinh_var.get() and not self.attached_file_path:
+                    messagebox.showwarning("Cảnh báo", "Vui lòng chọn file quy trình.")
+                    return
+                
+                # Sử dụng dữ liệu từ df_quytrinh để thực hiện các bước cụ thể nếu checkbox được chọn
+                if self.checkbox_quytrinh_var.get():
+                    for qt_index, qt_row in self.df_quytrinh.iterrows():
+                        print(f"Processing QuyTrinh row {qt_index + 1}")
+                        if self.stop_flag:
+                            print("Stop flag set. Exiting loop.")
+                            break
+                        
+                        # Các dữ liệu được lấy ra từ file Excel
+                        tenqt_value = qt_row['Tên quy trình']  # Tên quy trình
+                        tenbidanh_value = qt_row['Bí danh']  # Tên bí danh
+                        tenform_value = qt_row['Tên Form']
+                        action_value = qt_row['Mã Action']
+                        time_value = qt_row['Thời gian']
+                        user_group_value = qt_row['Nhóm người dùng']
+                        #Cấu hình quy trình
+                        qt_url = url + "/group/guest/quan-tri-quy-trinh?p_p_id=quanlyquytrinh_WAR_ctonegatecoreportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_quanlyquytrinh_WAR_ctonegatecoreportlet_tabs1=Quản+lý+quy+trình&_quanlyquytrinh_WAR_ctonegatecoreportlet_jspPage=%2Fhtml%2Fqlquytrinh%2Fqlqtquytrinh%2Fqlqtquytrinh_add.jsp"
+                        #Danh sách Form
+                        add_qt_url = url +"/group/guest/quan-tri-quy-trinh?p_p_id=quanlyquytrinh_WAR_ctonegatecoreportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_quanlyquytrinh_WAR_ctonegatecoreportlet_tabs1=Quản+lý+form&_quanlyquytrinh_WAR_ctonegatecoreportlet_jspPage=%2Fhtml%2Fqlquytrinh%2Fqlqtform%2Fqlqtform_add.jsp"
+                        
+                        #Mở giao diện cấu hình quy trình
+                        driver.get(qt_url)
+                        bidanhqt = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtQuyTrinhAlias")))
+                        bidanhqt.send_keys(tenbidanh_value)
+                        
+                        tenqt = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtQuyTrinhName")))
+                        tenqt.send_keys(tenqt_value)
+                        
+                        tenqt.send_keys(Keys.ENTER) #Nhấn Enter để lưu
+                        time.sleep(5)
+                        
+                        #Mở giao diện Cấu hình Form
+                        driver.get(add_qt_url)
+                        # Tìm dòng có chứa văn bản từ cột "Nhóm người dùng" và check vào checkbox bên cạnh
+                        table = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "tableqtquyen")))
+                        rows = table.find_elements(By.CLASS_NAME, "rowChiTiet")
+                        for row in rows:
+                            if user_group_value in row.text:
+                                checkbox = row.find_element(By.CLASS_NAME, "roleInput")
+                                if not checkbox.is_selected():
+                                    checkbox.click()
+                                break
+                        time.sleep(5)       
                 
                 #Thao tac dong bo thu tuc chung
                 if self.checkbox_dongboTTC.get():
@@ -506,16 +570,24 @@ class App:
         self.quy_trinh_frame.pack(fill="x", padx=10, pady=5)
 
         tk.Label(self.quy_trinh_frame, text="Tên quy trình:", font=self.default_font2).grid(row=0, column=0, padx=0, pady=0, sticky='w')
-        self.ten_quy_trinh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=60)
+        self.ten_quy_trinh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=50)
         self.ten_quy_trinh_entry.grid(row=0, column=1, padx=0.5, pady=0.5)
 
         tk.Label(self.quy_trinh_frame, text="Bí danh quy trình:", font=self.default_font2).grid(row=1, column=0, padx=0, pady=0, sticky='w')
-        self.bi_danh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=60)
+        self.bi_danh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=50)
         self.bi_danh_entry.grid(row=1, column=1, padx=0.5, pady=0.5)
         
-        tk.Label(self.quy_trinh_frame, text="Gắn vào TTHC:", font=self.default_font2).grid(row=0, column=2, padx=5, pady=5, sticky='w')
-        self.tthc_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=30)
-        self.tthc_entry.grid(row=0, column=3, padx=0.5, pady=0.5)
+        tk.Label(self.quy_trinh_frame, text="Gắn vào TTHC:", font=self.default_font2).grid(row=0, column=3, padx=5, pady=5, sticky='w')
+        self.tthc_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=50)
+        self.tthc_entry.grid(row=0, column=4, padx=0.5, pady=0.5)
+        
+        # #Nút Chọn quy trình
+        # self.attach_button = tk.Button(self.quy_trinh_frame, text="Chọn quy trình", command=self.attach_file, font=self.default_font)
+        # self.attach_button.grid(row=0, column=3, padx=5, pady=5)
+        
+        # #Nút Start
+        # self.start_button = tk.Button(self.quy_trinh_frame, text="START", command=self.start_qt, font=self.button_font, fg="green")
+        # self.start_button.grid(row=1, column=3, padx=5, pady=5)
 
         # Khung chứa Danh sách Form
         self.danh_sach_form_frame = tk.LabelFrame(quy_trinh_window, text="Danh sách Form", font=self.default_font2)
@@ -525,6 +597,8 @@ class App:
         headers = ["ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"]
         for col, header in enumerate(headers):
             tk.Label(self.danh_sach_form_frame, text=header, font=self.default_font2).grid(row=0, column=col, padx=5, pady=5)
+            
+
 
         self.add_form_entry()  # Thêm form entry đầu tiên
 
@@ -548,6 +622,9 @@ class App:
         self.download_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Tải về", command=self.export_to_excel, font=self.button_font2, fg="blue")
         # self.download_button.pack(pady=5) # nút Tải về nằm rời bên dưới
         self.download_button.grid(row=999, column=3, columnspan=5, pady=5)
+        
+        
+
 
     def add_form_entry(self, id=None):
         if id is None:
@@ -665,7 +742,7 @@ class App:
             action = entry[2].get()
             thoi_gian = entry[3].get()
             nhom_nguoi_dung = entry[4].get()
-            quy_trinh_data.append([tthc,ten_quy_trinh, id, ten_form, action, thoi_gian, nhom_nguoi_dung])
+            quy_trinh_data.append([tthc,ten_quy_trinh, bi_danh, id, ten_form, action, thoi_gian, nhom_nguoi_dung])
 
         luan_chuyen_data = []
         for entry in self.luan_chuyen_entries:
@@ -675,7 +752,7 @@ class App:
             to_form3 = entry[7].get()
             luan_chuyen_data.append([from_form, to_form, to_form2, to_form3])
 
-        df_quy_trinh = pd.DataFrame(quy_trinh_data, columns=["TTHC","Tên quy trình", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
+        df_quy_trinh = pd.DataFrame(quy_trinh_data, columns=["TTHC","Tên quy trình","Bí danh", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
         df_luan_chuyen = pd.DataFrame(luan_chuyen_data, columns=["Từ Form", "Đến Form", "Đến Form 2", "Đến Form 3"])
 
         wb = Workbook()
@@ -716,7 +793,11 @@ class App:
         self.attached_file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
         if self.attached_file_path:
             self.attached_file_label.config(text=self.attached_file_path)
-            messagebox.showinfo("Thông báo", f"File đã được đính kèm: {self.attached_file_path}")
+            try:
+                self.df_quytrinh = pd.read_excel(self.attached_file_path, sheet_name='QuyTrinh', header=4)
+                messagebox.showinfo("Thông báo", "Đã tải dữ liệu từ file quy trình.")
+            except Exception as e:
+                messagebox.showerror("Lỗi", f"Không thể tải dữ liệu từ file: {e}")
     
     def download_sample_file(self):
         # Specify the directory where the sample file is located
