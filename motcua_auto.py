@@ -5,6 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import StaleElementReferenceException
 from datetime import datetime, timedelta
 import time
 import tkinter as tk
@@ -20,6 +21,17 @@ from openpyxl import Workbook
 from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from urllib.parse import urljoin
+
+# Định nghĩa hàm find_element_and_send_keys
+# def find_element_and_send_keys(driver, by, value, keys):
+#     while True:
+#         try:
+#             element = driver.find_element(by, value)
+#             element.clear()  # Xóa dữ liệu hiện có trên ô trước khi điền
+#             element.send_keys(keys)
+#             break  # Thoát khỏi vòng lặp nếu thành công
+#         except StaleElementReferenceException:
+#             time.sleep(1)  # Chờ một lúc trước khi thử lại
 
 class App:
     def __init__(self, root):
@@ -143,10 +155,6 @@ class App:
         self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông",fg="purple", font=self.signature_font, anchor='e')
         self.signature_label.pack(side=tk.BOTTOM, padx=10, pady=10, anchor='se')
         
-
-    
-
-            
     
     def read_quy_trinh_file(self):
         try:
@@ -374,21 +382,104 @@ class App:
                         EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtQuyTrinhName")))
                         tenqt.send_keys(tenqt_value)
                         
-                        tenqt.send_keys(Keys.ENTER) #Nhấn Enter để lưu
-                        time.sleep(5)
+                        bidanhsave = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_add")))
+                        bidanhsave.click()
+                        
+                        # tenqt.send_keys(Keys.ENTER) #Nhấn Enter để lưu
+
                         
                         #Mở giao diện Cấu hình Form
                         driver.get(add_qt_url)
-                        # Tìm dòng có chứa văn bản từ cột "Nhóm người dùng" và check vào checkbox bên cạnh
+                        
+                        #Gắn vào tên form
+                        gantenform = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_TenForm")))
+                        gantenform.send_keys(tenform_value)
+                        
+                        #chọn quy trình xử lý
+                        chonqt = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rendered")))
+                        chonqt.click()
+                        
+                        gantenqt = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, "select2-search__field")))
+                        gantenqt.send_keys(tenqt_value)
+                        
+                        gantenqt.send_keys(Keys.ENTER) #Nhấn Enter để lưu
+                        time.sleep(2)
+                         
+                        
+                        #Cấu hình thời gian(Ngày)
+                        timexuly = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_HanXuLyTheoNgay")))
+                        timexuly.clear()  # Xóa dữ liệu hiện có
+                        timexuly.send_keys(time_value)
+                        
+                        #Cấu hình mã action
+                        action = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_MaAction")))
+                        action.send_keys(action_value)
+                        time.sleep(1)
+                        
+                        # # Tìm dòng có chứa văn bản từ cột "Nhóm người dùng" và check vào checkbox bên cạnh
+                        # Chờ đợi cho bảng hiển thị
                         table = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "tableqtquyen")))
+
+                        # Tìm tất cả các dòng trong bảng
                         rows = table.find_elements(By.CLASS_NAME, "rowChiTiet")
+
+                        # Duyệt qua từng dòng và chọn checkbox dựa trên nội dung của cột đầu tiên
                         for row in rows:
-                            if user_group_value in row.text:
+                            # Lấy văn bản trong thẻ td đầu tiên
+                            role_name = row.find_element(By.TAG_NAME, "td").text.strip()
+                            # Kiểm tra xem role_name có chứa giá trị bạn muốn không
+                            if user_group_value in role_name:
+                                # Tìm checkbox
                                 checkbox = row.find_element(By.CLASS_NAME, "roleInput")
+                                # Kiểm tra nếu không được chọn thì kích vào nó
                                 if not checkbox.is_selected():
                                     checkbox.click()
-                                break
-                        time.sleep(5)       
+                                break  # Dừng vòng lặp sau khi đã tìm thấy và kích vào checkbox  
+
+                        save = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_add")))
+                        save.click()
+                        
+                        
+                    # Đọc dữ liệu từ sheet "LuanChuyen" trong file quy trình
+                    self.df_luanchuyen = pd.read_excel(self.attached_file_path, sheet_name='LuanChuyen', header=4)
+                    # Thao tác với dữ liệu từ sheet "LuanChuyen"
+                    for lc_index, lc_row in self.df_luanchuyen.iterrows():
+                        print(f"Processing QuyTrinh row {lc_index + 1}")
+                        if self.stop_flag:
+                            print("Stop flag set. Exiting loop.")
+                            break
+                        
+                        #Lấy dữ liệu từ sheet LuanChuyen
+                        tu_form = lc_row['Từ Form']
+                        den_form = lc_row['Đến Form']
+                        den_form2 = lc_row['Đến Form 2']
+                        den_form3 = lc_row['Đến Form 3']
+                        
+                        #Cấu hình luân chuyển
+                        lc_url = url + "/group/guest/quan-tri-quy-trinh?p_p_id=quanlyquytrinh_WAR_ctonegatecoreportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_quanlyquytrinh_WAR_ctonegatecoreportlet_tabs1=Quản+lý+luân+chuyển&_quanlyquytrinh_WAR_ctonegatecoreportlet_jspPage=%2Fhtml%2Fqlquytrinh%2Fqlqtluanchuyen%2Fqlqtluanchuyen_add.jsp&_quanlyquytrinh_WAR_ctonegatecoreportlet_qtQTQuyTrinhID=-1"
+                        
+                        #Mở giao diện cấu hình quy trình
+                        driver.get(lc_url)
+                        
+                        #chọn quy trình xử lý
+                        chonqt_lc = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rendered")))
+                        chonqt_lc.click()
+                        
+                        gantenqt_lc = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, "select2-search__field")))
+                        gantenqt_lc.send_keys(tenqt_value)
+                        
+                        gantenqt_lc.send_keys(Keys.ENTER) #Nhấn Enter để lưu
+                        time.sleep(2)
+                
                 
                 #Thao tac dong bo thu tuc chung
                 if self.checkbox_dongboTTC.get():
@@ -581,20 +672,12 @@ class App:
         self.tthc_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=50)
         self.tthc_entry.grid(row=0, column=4, padx=0.5, pady=0.5)
         
-        # #Nút Chọn quy trình
-        # self.attach_button = tk.Button(self.quy_trinh_frame, text="Chọn quy trình", command=self.attach_file, font=self.default_font)
-        # self.attach_button.grid(row=0, column=3, padx=5, pady=5)
-        
-        # #Nút Start
-        # self.start_button = tk.Button(self.quy_trinh_frame, text="START", command=self.start_qt, font=self.button_font, fg="green")
-        # self.start_button.grid(row=1, column=3, padx=5, pady=5)
-
         # Khung chứa Danh sách Form
         self.danh_sach_form_frame = tk.LabelFrame(quy_trinh_window, text="Danh sách Form", font=self.default_font2)
         self.danh_sach_form_frame.pack(fill="x", padx=10, pady=5)
 
         # Thêm tiêu đề của các cột
-        headers = ["ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"]
+        headers = ["ID", "Tên Form", "Mã Action", "Thời gian (Ngày)", "Nhóm người dùng"]
         for col, header in enumerate(headers):
             tk.Label(self.danh_sach_form_frame, text=header, font=self.default_font2).grid(row=0, column=col, padx=5, pady=5)
             
@@ -669,8 +752,6 @@ class App:
             for widget in entry:
                 widget.grid_configure(row=idx + 1)
 
-
-    
     
     def add_luan_chuyen_entry(self):
         row = len(self.luan_chuyen_entries) + 1
