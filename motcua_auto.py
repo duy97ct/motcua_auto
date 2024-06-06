@@ -22,16 +22,7 @@ from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from urllib.parse import urljoin
 
-# Định nghĩa hàm find_element_and_send_keys
-# def find_element_and_send_keys(driver, by, value, keys):
-#     while True:
-#         try:
-#             element = driver.find_element(by, value)
-#             element.clear()  # Xóa dữ liệu hiện có trên ô trước khi điền
-#             element.send_keys(keys)
-#             break  # Thoát khỏi vòng lặp nếu thành công
-#         except StaleElementReferenceException:
-#             time.sleep(1)  # Chờ một lúc trước khi thử lại
+
 
 class App:
     def __init__(self, root):
@@ -256,16 +247,10 @@ class App:
         else:
             chromedriver_path = "chromedriver.exe"
 
-        # Khởi tạo ChromeOptions
-        # chrome_options = webdriver.ChromeOptions()
-
-        # # Vô hiệu hóa chế độ ẩn danh
-        # chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-        # chrome_options.add_argument("user-data-dir=<PROFILE_DIRECTORY_PATH>")
         
         # # Khởi tạo trình duyệt
         # # driver = webdriver.Chrome(chromedriver_path) #THƯ MỤC GỐC
-        # # driver = webdriver.Chrome(chromedriver_path, chrome_options=chrome_options)
+        
         # Khởi tạo ChromeOptions
         chrome_options = webdriver.ChromeOptions()
 
@@ -468,10 +453,9 @@ class App:
                         
                     # Đọc dữ liệu từ sheet "LuanChuyen" trong file quy trình
                     self.df_luanchuyen = pd.read_excel(self.attached_file_path, sheet_name='LuanChuyen', header=4)
-                    # Thao tác với dữ liệu từ sheet "LuanChuyen"
                     
                     
-                    
+                    # Thao tác với dữ liệu từ sheet "LuanChuyen"                    
                     for lc_index, lc_row in self.df_luanchuyen.iterrows():
                         print(f"Processing QuyTrinh row {lc_index + 1}")
                         if self.stop_flag:
