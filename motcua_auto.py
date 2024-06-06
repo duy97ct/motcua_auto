@@ -371,6 +371,7 @@ class App:
                         action_value = qt_row['Mã Action']
                         time_value = qt_row['Thời gian']
                         user_group_value = qt_row['Nhóm người dùng']
+                        # phongban_value = qt_row['Phòng ban']
                         #Cấu hình quy trình
                         qt_url = url + "/group/guest/quan-tri-quy-trinh?p_p_id=quanlyquytrinh_WAR_ctonegatecoreportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_quanlyquytrinh_WAR_ctonegatecoreportlet_tabs1=Quản+lý+quy+trình&_quanlyquytrinh_WAR_ctonegatecoreportlet_jspPage=%2Fhtml%2Fqlquytrinh%2Fqlqtquytrinh%2Fqlqtquytrinh_add.jsp"
                         #Danh sách Form
@@ -768,7 +769,7 @@ class App:
         self.danh_sach_form_frame.pack(fill="x", padx=10, pady=5)
 
         # Thêm tiêu đề của các cột
-        headers = ["ID", "Tên Form", "Mã Action", "Thời gian (Ngày)", "Nhóm người dùng"]
+        headers = ["ID", "Tên Form", "Mã Action", "Thời gian (Ngày)", "Nhóm người dùng", "Phòng ban"]
         for col, header in enumerate(headers):
             tk.Label(self.danh_sach_form_frame, text=header, font=self.default_font2).grid(row=0, column=col, padx=5, pady=5)
             
@@ -821,10 +822,13 @@ class App:
         nhom_nguoi_dung_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
         nhom_nguoi_dung_entry.grid(row=row, column=4, padx=0.5, pady=0.5)
 
+        phongban_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
+        phongban_entry.grid(row=row, column=5, padx=0.5, pady=0.5)
+        
         delete_button = tk.Button(self.danh_sach_form_frame, text="Xóa", command=lambda: self.delete_form_entry(id), font=self.button_font2, fg="red")
-        delete_button.grid(row=row, column=5, padx=0.5, pady=0.5)
+        delete_button.grid(row=row, column=6, padx=0.5, pady=0.5)
 
-        self.form_entries.append((id_label, ten_form_entry, action_menu, thoi_gian_entry, nhom_nguoi_dung_entry, delete_button))
+        self.form_entries.append((id_label, ten_form_entry, action_menu, thoi_gian_entry, nhom_nguoi_dung_entry, phongban_entry, delete_button))
         self.update_luan_chuyen_menus()
 
     def delete_form_entry(self, id):
@@ -914,7 +918,8 @@ class App:
             action = entry[2].get()
             thoi_gian = entry[3].get()
             nhom_nguoi_dung = entry[4].get()
-            quy_trinh_data.append([tthc,ten_quy_trinh, bi_danh, id, ten_form, action, thoi_gian, nhom_nguoi_dung])
+            phongban = entry[5].get()
+            quy_trinh_data.append([tthc,ten_quy_trinh, bi_danh, id, ten_form, action, thoi_gian, nhom_nguoi_dung, phongban ])
 
         luan_chuyen_data = []
         for entry in self.luan_chuyen_entries:
@@ -924,7 +929,7 @@ class App:
             to_form3 = entry[7].get()
             luan_chuyen_data.append([tthc,ten_quy_trinh,from_form, to_form, to_form2, to_form3])
 
-        df_quy_trinh = pd.DataFrame(quy_trinh_data, columns=["TTHC","Tên quy trình","Bí danh", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
+        df_quy_trinh = pd.DataFrame(quy_trinh_data, columns=["TTHC","Tên quy trình","Bí danh", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng", "Phòng ban"])
         df_luan_chuyen = pd.DataFrame(luan_chuyen_data, columns=["TTHC","Tên quy trình", "Từ Form", "Đến Form", "Đến Form 2", "Đến Form 3"])
 
         wb = Workbook()
