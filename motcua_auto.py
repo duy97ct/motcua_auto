@@ -479,7 +479,34 @@ class App:
                         
                         gantenqt_lc.send_keys(Keys.ENTER) #Nhấn Enter để lưu
                         time.sleep(2)
+                        
+                        #Cấu hình Từ form
+                        from_form = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtLC_fromformID")))
+                        from_form.send_keys(tu_form)
+                        time.sleep(1)
+                        
+                        #Cấu hình Đến form
+                        to_form = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtLC_toformID_01")))
+                        to_form.send_keys(den_form)
+                        time.sleep(1)
+                        
+                        #Cấu hình Đến form2
+                        to_form2 = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtLC_toformID_02")))
+                        to_form2.send_keys(den_form2)
+                        time.sleep(1)
+                        
+                        #Cấu hình Đến form3
+                        to_form3 = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtLC_toformID_03")))
+                        to_form3.send_keys(den_form3)
+                        time.sleep(1)
                 
+                        save_lc = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_add")))
+                        save_lc.click()
                 
                 #Thao tac dong bo thu tuc chung
                 if self.checkbox_dongboTTC.get():
@@ -831,10 +858,10 @@ class App:
             to_form = entry[3].get()
             to_form2 = entry[5].get()
             to_form3 = entry[7].get()
-            luan_chuyen_data.append([from_form, to_form, to_form2, to_form3])
+            luan_chuyen_data.append([tthc,ten_quy_trinh,from_form, to_form, to_form2, to_form3])
 
         df_quy_trinh = pd.DataFrame(quy_trinh_data, columns=["TTHC","Tên quy trình","Bí danh", "ID", "Tên Form", "Mã Action", "Thời gian", "Nhóm người dùng"])
-        df_luan_chuyen = pd.DataFrame(luan_chuyen_data, columns=["Từ Form", "Đến Form", "Đến Form 2", "Đến Form 3"])
+        df_luan_chuyen = pd.DataFrame(luan_chuyen_data, columns=["TTHC","Tên quy trình", "Từ Form", "Đến Form", "Đến Form 2", "Đến Form 3"])
 
         wb = Workbook()
         ws_quy_trinh = wb.active
