@@ -256,8 +256,27 @@ class App:
         else:
             chromedriver_path = "chromedriver.exe"
 
-        # Khởi tạo trình duyệt
-        driver = webdriver.Chrome(chromedriver_path)
+        # Khởi tạo ChromeOptions
+        # chrome_options = webdriver.ChromeOptions()
+
+        # # Vô hiệu hóa chế độ ẩn danh
+        # chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        # chrome_options.add_argument("user-data-dir=<PROFILE_DIRECTORY_PATH>")
+        
+        # # Khởi tạo trình duyệt
+        # # driver = webdriver.Chrome(chromedriver_path) #THƯ MỤC GỐC
+        # # driver = webdriver.Chrome(chromedriver_path, chrome_options=chrome_options)
+        # Khởi tạo ChromeOptions
+        chrome_options = webdriver.ChromeOptions()
+
+        # Vô hiệu hóa chế độ ẩn danh
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+
+        # Đường dẫn đến thư mục lưu trữ dữ liệu cá nhân của Chrome
+        chrome_options.add_argument("user-data-dir=C:\\chromedriver")
+
+        # Khởi tạo trình duyệt với ChromeOptions và đường dẫn của ChromeDriver
+        driver = webdriver.Chrome(executable_path=chromedriver_path, options=chrome_options)
         
         df = pd.read_excel(self.file_path)
         
@@ -405,9 +424,9 @@ class App:
                         gantenqt = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.CLASS_NAME, "select2-search__field")))
                         gantenqt.send_keys(tenqt_value)
-                        
+                        time.sleep(1)
                         gantenqt.send_keys(Keys.ENTER) #Nhấn Enter để lưu
-                        time.sleep(2)
+                        
                          
                         
                         #Cấu hình thời gian(Ngày)
@@ -450,6 +469,9 @@ class App:
                     # Đọc dữ liệu từ sheet "LuanChuyen" trong file quy trình
                     self.df_luanchuyen = pd.read_excel(self.attached_file_path, sheet_name='LuanChuyen', header=4)
                     # Thao tác với dữ liệu từ sheet "LuanChuyen"
+                    
+                    
+                    
                     for lc_index, lc_row in self.df_luanchuyen.iterrows():
                         print(f"Processing QuyTrinh row {lc_index + 1}")
                         if self.stop_flag:
@@ -461,6 +483,7 @@ class App:
                         den_form = lc_row['Đến Form']
                         den_form2 = lc_row['Đến Form 2']
                         den_form3 = lc_row['Đến Form 3']
+                        
                         
                         #Cấu hình luân chuyển
                         lc_url = url + "/group/guest/quan-tri-quy-trinh?p_p_id=quanlyquytrinh_WAR_ctonegatecoreportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_quanlyquytrinh_WAR_ctonegatecoreportlet_tabs1=Quản+lý+luân+chuyển&_quanlyquytrinh_WAR_ctonegatecoreportlet_jspPage=%2Fhtml%2Fqlquytrinh%2Fqlqtluanchuyen%2Fqlqtluanchuyen_add.jsp&_quanlyquytrinh_WAR_ctonegatecoreportlet_qtQTQuyTrinhID=-1"
@@ -507,7 +530,64 @@ class App:
                         save_lc = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_add")))
                         save_lc.click()
-                
+                        
+                    #Cấu hình gắn vào TTHC
+                    url_dvc = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewDanhMucThuTuc"
+                    driver.get(url_dvc)
+                        
+                    #Lấy giá trị ô B3
+                    tthc_lc = self.df_luanchuyen.iat[1, 0]  # hàng thứ 2 (A6) và cột thứ 1
+                        
+                    #click vào ô hiển thị tìm kiếm
+                    dvc_click = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), 'Hiển thị tìm kiếm')]")))
+                    dvc_click.click()
+                        
+                    #click vào ô mã loại
+                    ma_click = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "ma")))
+                    ma_click.send_keys(tthc_lc)
+                        
+                    #click vào nút tìm kiếm
+                    search_click = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, "//button[@name='btnSearch' and @value='search']")))
+                    search_click.click()
+                    
+                    # url_update_dvc = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_DanhMuc_WAR_ctonegateportlet_token=b95873f80bd19a49a85e927682122e1e&_DanhMuc_WAR_ctonegateportlet_thuTucId=145108&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewEditDanhMucThuTuc"
+                    # driver.get(url_update_dvc)    
+
+                    table1 = driver.find_element(By.CLASS_NAME, "table-data")
+                    rows = table1.find_elements(By.TAG_NAME, "tr")
+
+                    for row in rows:
+                        try:
+                            tenthutuc_cell = row.find_element(By.CLASS_NAME, "table-cell.tenthutuc")
+                            link = tenthutuc_cell.find_element(By.TAG_NAME, "a")
+                            link.click()
+                        except StaleElementReferenceException:
+                            # Xử lý nếu phát hiện lỗi StaleElementReferenceException
+                            print("Element is no longer attached to the DOM. Retrying...")
+                            continue
+
+                    
+                    
+                           
+                    #chọn quy trình gắn vào TTHC
+                    chonqt_tthc = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rendered")))
+                    chonqt_tthc.click()
+                        
+                    dien_tthc = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "select2-search__field")))
+                    dien_tthc.send_keys(tenqt_value)
+                    dien_tthc.send_keys(Keys.ENTER) #Nhấn Enter để lưu
+                    time.sleep(1)       
+                    
+                    #Lưu
+                    save_tthc = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "luuKhongDongBo")))
+                    save_tthc.click()
+                     
                 #Thao tac dong bo thu tuc chung
                 if self.checkbox_dongboTTC.get():
                     print(f"Đang đồng bộ TTC cho hàng {index+1}")
