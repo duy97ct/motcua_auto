@@ -822,7 +822,7 @@ class App:
         nhom_nguoi_dung_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
         nhom_nguoi_dung_entry.grid(row=row, column=4, padx=0.5, pady=0.5)
 
-        phongban_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
+        phongban_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2, width=23)
         phongban_entry.grid(row=row, column=5, padx=0.5, pady=0.5)
         
         delete_button = tk.Button(self.danh_sach_form_frame, text="Xóa", command=lambda: self.delete_form_entry(id), font=self.button_font2, fg="red")
