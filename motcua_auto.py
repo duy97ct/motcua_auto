@@ -28,7 +28,7 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title("FastMotions - One Click One Task")
-        self.root.geometry("700x550")
+        self.root.geometry("700x570")
 
         
          # Đặt biểu tượng cho ứng dụng
@@ -56,6 +56,10 @@ class App:
         # Tạo nút "Check Update"
         self.check_update_button = tk.Button(root, text="Check Update", command=self.check_for_update)
         self.check_update_button.pack(anchor='se', padx=5, pady=5)
+        
+        # Tạo nhãn thông báo
+        self.update_label = tk.Label(root, text="", font=("Helvetica", 12), fg="blue")
+        self.update_label.pack(anchor='center', pady=2)
         
         # Tiêu đề
         self.title_label = tk.Label(root, text="PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC\nHỆ THỐNG MỘT CỬA ĐIỆN TỬ", fg="red", font=self.title_font)
@@ -189,26 +193,44 @@ class App:
         
         if response.status_code == 200:
             if messagebox.askyesno("Cập nhật", "Có bản cập nhật mới. Bạn có muốn tải xuống và cài đặt không?"):
+                self.update_label.config(text="Đang tải bản cập nhật...")
+                self.root.update_idletasks()
+                
+                temp_update_path = "temp_update.exe"  # Đường dẫn tạm cho file cập nhậ
+                
                 with open(temp_update_path, 'wb') as file:
                     for chunk in response.iter_content(chunk_size=8192):
                         file.write(chunk)
-                messagebox.showinfo("Thông báo", "Cập nhật thành công. Vui lòng khởi động lại ứng dụng.")
-                self.schedule_update(temp_update_path)
+                        
+                # messagebox.showinfo("Thông báo", "Cập nhật thành công. Vui lòng khởi động lại ứng dụng.")
+                self.update_label.config(text="Cập nhật thành công. Ứng dụng sẽ khởi động lại sau vài giây.")
+                self.root.update_idletasks()
+                time.sleep(2) 
+                # self.schedule_update(temp_update_path)
+                
+                # Tạo một thread mới để thực hiện khởi động lại
+                restart_thread = threading.Thread(target=self.restart_app, args=(temp_update_path,))
+                restart_thread.start()
+                
                 self.root.destroy()
             else:
                 messagebox.showinfo("Thông báo", "Đã hủy cập nhật.")
+                self.update_label.config(text="")
         else:
             messagebox.showerror("Lỗi", "Không thể tải tệp cập nhật. Vui lòng thử lại sau.")
+            self.update_label.config(text="")
 
 
-    def schedule_update(self, temp_update_path):
+    def restart_app(self, update_path):
         # Tạo một kịch bản Python để cập nhật ứng dụng
-        update_script_content = f'''
+            update_script_content = f'''
 import os
 import shutil
 import time
+import subprocess
+import sys
 
-source = r"{temp_update_path}"
+source = r"{update_path}"
 destination = r"{sys.executable}"
 
 # Chờ một chút để đảm bảo ứng dụng chính đã thoát
@@ -221,19 +243,20 @@ shutil.copy2(source, destination)
 os.remove(source)
 
 # Khởi động lại ứng dụng
-os.startfile(destination)
+subprocess.Popen([destination])
 '''
 
-        # Đường dẫn tạm thời cho kịch bản cập nhật
-        update_script_path = os.path.join(os.getenv('TEMP'), "update_script.py")
+    # Đường dẫn tạm thời cho kịch bản cập nhật
+            update_script_path = os.path.join(os.getenv('TEMP'), "update_script.py")
 
-        # Ghi nội dung kịch bản vào tệp tạm thời
-        with open(update_script_path, 'w', encoding='utf-8') as script_file:
-            script_file.write(update_script_content)
+    # Ghi nội dung kịch bản vào tệp tạm thời
+            with open(update_script_path, 'w', encoding='utf-8') as script_file:
+                script_file.write(update_script_content)
 
-        # Thực thi kịch bản này để thực hiện quá trình cập nhật
-        subprocess.Popen(['python', update_script_path])
+    # Thực thi kịch bản này để thực hiện quá trình cập nhật
+            subprocess.Popen(['python', update_script_path])
 
+    
     def open_file(self):
         self.file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
         if self.file_path:
