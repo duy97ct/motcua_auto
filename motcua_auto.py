@@ -30,8 +30,14 @@ class App:
         self.root.title("FastMotions - One Click One Task")
         self.root.geometry("700x550")
 
+        
+         # Đặt biểu tượng cho ứng dụng
+        if hasattr(sys, '_MEIPASS'):
+            self.icon_path = os.path.join(sys._MEIPASS, 'icon.ico')
+        else:
         # Đặt icon cho cửa sổ
-        self.icon_path = "icon.ico"  # Đường dẫn đến icon
+            self.icon_path = "icon.ico"  # Đường dẫn đến icon
+            
         self.root.iconbitmap(self.icon_path)
         
         self.file_path = ""
@@ -147,7 +153,7 @@ class App:
         self.stop_button.grid(row=0, column=1, padx=5)    
         
         # Slogan
-        self.slogan_label = tk.Label(root, text="CÔNG VIỆC LÀ CỦA BẠN - CÒN THAO TÁC LÀ CỦA CHÚNG TÔI", fg="DarkBlue", font=self.slogan_font, anchor='center')
+        self.slogan_label = tk.Label(root, text="CÔNG VIỆC LÀ CỦA BẠN - CÒN THAO TÁC LÀ CỦA CHÚNG TÔI !", fg="DarkBlue", font=self.slogan_font, anchor='center')
         self.slogan_label.pack(side=tk.BOTTOM, padx=10, pady=5)
 
         # Chữ ký

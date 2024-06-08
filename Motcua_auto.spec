@@ -8,7 +8,7 @@ a = Analysis(
     ['Motcua_auto.py'],
     pathex=[],
     binaries=[],
-    datas=[('data.xlsx', '.'), ('chromedriver.exe', '.'), ('quytrinh.xlsx', '.')],
+    datas=[('data.xlsx', '.'), ('chromedriver.exe', '.'), ('icon.ico', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
