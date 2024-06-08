@@ -255,6 +255,9 @@ subprocess.Popen([destination])
 
     # Thực thi kịch bản này để thực hiện quá trình cập nhật
             subprocess.Popen(['python', update_script_path])
+    
+    # Xóa file kịch bản cập nhật sau khi hoàn tất
+            os.remove(update_script_path)
 
     
     def open_file(self):
@@ -302,7 +305,7 @@ subprocess.Popen([destination])
         try:
             
             for index, row in df.iterrows():
-                print(f"Processing row {index+1}")
+                print(f"Đang tự động hóa dòng {index+1} trong file data.xlsx")
                 if self.stop_flag:
                     print("Stop flag set. Exiting loop.")
                     break
@@ -413,7 +416,7 @@ subprocess.Popen([destination])
                     bidanhsave.click()
     
                     for qt_index, qt_row in self.df_quytrinh.iterrows():
-                        print(f"Đang cấu hình Quy trình cho dòng {qt_index + 1}")
+                        print(f"Đang cấu hình Quy trình cho dòng: {qt_index + 1}")
                         if self.stop_flag:
                             print("Stop flag set. Exiting loop.")
                             break
@@ -493,7 +496,7 @@ subprocess.Popen([destination])
                     
                     # Thao tác với dữ liệu từ sheet "LuanChuyen"                    
                     for lc_index, lc_row in self.df_luanchuyen.iterrows():
-                        print(f"Processing QuyTrinh row {lc_index + 1}")
+                        print(f"Đang cấu hình Luân Chuyển cho dòng: {lc_index + 1}")
                         if self.stop_flag:
                             print("Stop flag set. Exiting loop.")
                             break
@@ -586,12 +589,11 @@ subprocess.Popen([destination])
                             link.click()
                         except StaleElementReferenceException:
                             # Xử lý nếu phát hiện lỗi StaleElementReferenceException
-                            print("Element is no longer attached to the DOM. Retrying...")
+                            print("Đang chuyển tiếp sang hàng tiếp theo. Vui lòng chờ...")
                             continue
 
                     
-                    
-                           
+                                               
                     #chọn quy trình gắn vào TTHC
                     chonqt_tthc = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rendered")))
