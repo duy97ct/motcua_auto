@@ -196,7 +196,7 @@ class App:
                 self.update_label.config(text="Đang tải bản cập nhật...")
                 self.root.update_idletasks()
                 
-                temp_update_path = "temp_update.exe"  # Đường dẫn tạm cho file cập nhậ
+                # temp_update_path = "temp_update.exe"  # Đường dẫn tạm cho file cập nhậ
                 
                 with open(temp_update_path, 'wb') as file:
                     for chunk in response.iter_content(chunk_size=8192):
@@ -205,7 +205,7 @@ class App:
                 # messagebox.showinfo("Thông báo", "Cập nhật thành công. Vui lòng khởi động lại ứng dụng.")
                 self.update_label.config(text="Cập nhật thành công. Ứng dụng sẽ khởi động lại sau vài giây.")
                 self.root.update_idletasks()
-                time.sleep(2) 
+                time.sleep(3) 
                 # self.schedule_update(temp_update_path)
                 
                 # Tạo một thread mới để thực hiện khởi động lại
