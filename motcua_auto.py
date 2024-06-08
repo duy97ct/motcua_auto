@@ -247,15 +247,16 @@ subprocess.Popen([destination])
 '''
 
     # Đường dẫn tạm thời cho kịch bản cập nhật
-            update_script_path = os.path.join(os.getenv('TEMP'), "update_script.py")
-
+            # update_script_path = os.path.join(os.getenv('TEMP'), "update_script.py")
+            update_script_dir = os.path.dirname(temp_update_path)
+            update_script_path = os.path.join(update_script_dir, "update_script.py")
     # Ghi nội dung kịch bản vào tệp tạm thời
             with open(update_script_path, 'w', encoding='utf-8') as script_file:
                 script_file.write(update_script_content)
 
     # Thực thi kịch bản này để thực hiện quá trình cập nhật
-            subprocess.Popen(['python', update_script_path])
-    
+            # subprocess.Popen(['python', update_script_path])
+            subprocess.Popen([sys.executable, update_script_path])
     # Xóa file kịch bản cập nhật sau khi hoàn tất
             os.remove(update_script_path)
 
