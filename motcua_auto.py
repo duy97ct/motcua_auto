@@ -177,14 +177,9 @@ class App:
         repo_name = "motcua_auto"
         file_path = "Motcua_auto.exe"  # Đường dẫn tệp trên GitHub
 
-        # Đường dẫn lưu tệp trên hệ thống (cùng thư mục với file .exe)
-        if getattr(sys, 'frozen', False):
-            application_path = os.path.dirname(sys.executable)
-        else:
-            application_path = os.path.dirname(os.path.abspath(__file__))
-            
-        save_path = os.path.join(application_path, "Motcua_auto.exe")
-        
+        # Đường dẫn lưu tệp tạm thời
+        temp_update_path = os.path.join(os.getenv('TEMP'), "Motcua_auto_update.exe")
+
         # URL trực tiếp tới tệp .exe trên GitHub
         url_update = f"https://github.com/{repo_owner}/{repo_name}/raw/main/{file_path}"
         
@@ -194,10 +189,11 @@ class App:
         
         if response.status_code == 200:
             if messagebox.askyesno("Cập nhật", "Có bản cập nhật mới. Bạn có muốn tải xuống và cài đặt không?"):
-                with open(save_path, 'wb') as file:
+                with open(temp_update_path, 'wb') as file:
                     for chunk in response.iter_content(chunk_size=8192):
                         file.write(chunk)
                 messagebox.showinfo("Thông báo", "Cập nhật thành công. Vui lòng khởi động lại ứng dụng.")
+                self.schedule_update(temp_update_path)
                 self.root.destroy()
             else:
                 messagebox.showinfo("Thông báo", "Đã hủy cập nhật.")
@@ -205,38 +201,38 @@ class App:
             messagebox.showerror("Lỗi", "Không thể tải tệp cập nhật. Vui lòng thử lại sau.")
 
 
-    def download_and_replace_update(self):
-        try:
-            # URL tải về tệp cập nhật .exe
-            update_url = "https://github.com/duy97ct/motcua_auto/raw/main/Motcua_auto.exe"
-            
-            # Đường dẫn tới tệp .exe hiện tại
-            current_exe_path = os.path.abspath(__file__)
+    def schedule_update(self, temp_update_path):
+        # Tạo một kịch bản Python để cập nhật ứng dụng
+        update_script_content = f'''
+import os
+import shutil
+import time
 
-            # Tạo một tên tạm cho tệp tải về
-            temp_exe_path = current_exe_path + ".temp"
+source = r"{temp_update_path}"
+destination = r"{sys.executable}"
 
-            # Tải xuống tệp cập nhật
-            response = requests.get(update_url, stream=True)
-            response.raise_for_status()
+# Chờ một chút để đảm bảo ứng dụng chính đã thoát
+time.sleep(1)
 
-            # Lưu tệp cập nhật tạm thời
-            with open(temp_exe_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
+# Sao chép tệp cập nhật vào vị trí của ứng dụng hiện tại
+shutil.copy2(source, destination)
 
-            # Thay thế tệp hiện tại bằng tệp cập nhật
-            os.replace(temp_exe_path, current_exe_path)
+# Xóa tệp cập nhật tạm thời
+os.remove(source)
 
-            # Hiển thị thông báo và thoát ứng dụng
-            messagebox.showinfo("Cập nhật", "Đã tải xuống cập nhật. Vui lòng khởi động lại ứng dụng.")
-            self.root.destroy()
-            
-            # Tùy chọn: Tự động khởi động lại ứng dụng
-            subprocess.Popen([current_exe_path])
+# Khởi động lại ứng dụng
+os.startfile(destination)
+'''
 
-        except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể tải cập nhật: {e}")   
+        # Đường dẫn tạm thời cho kịch bản cập nhật
+        update_script_path = os.path.join(os.getenv('TEMP'), "update_script.py")
+
+        # Ghi nội dung kịch bản vào tệp tạm thời
+        with open(update_script_path, 'w', encoding='utf-8') as script_file:
+            script_file.write(update_script_content)
+
+        # Thực thi kịch bản này để thực hiện quá trình cập nhật
+        subprocess.Popen(['python', update_script_path])
 
     def open_file(self):
         self.file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
