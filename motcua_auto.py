@@ -30,6 +30,10 @@ class App:
         self.root.title("PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC HỆ THỐNG MỘT CỬA ĐIỆN TỬ")
         self.root.geometry("700x550")
 
+        # Đặt icon cho cửa sổ
+        self.icon_path = "icon.ico"  # Đường dẫn đến icon
+        self.root.iconbitmap(self.icon_path)
+        
         self.file_path = ""
         self.stop_flag = False
 
@@ -40,6 +44,7 @@ class App:
         self.button_font2 = ("Helvetica", 10, "bold")
         self.title_font = ("Helvetica", 16, "bold")
         self.signature_font = ("Helvetica",9)
+        self.slogan_font = ("Helvetica", 12, "italic", "bold")
         
 
         # Tạo nút "Check Update"
@@ -58,7 +63,7 @@ class App:
         self.file_entry = tk.Entry(self.file_frame, width=50, font=self.default_font)
         self.file_entry.pack(side=tk.LEFT, padx=5, expand=True, fill=tk.X)
 
-        self.open_button = tk.Button(self.file_frame, text="Open", command=self.open_file, font=self.default_font, fg="blue")
+        self.open_button = tk.Button(self.file_frame, text="Open", command=self.open_file, font=self.default_font, fg="DarkBlue")
         self.open_button.pack(side=tk.LEFT, padx=5)
         
         
@@ -123,7 +128,7 @@ class App:
         self.download_frame.pack(pady=5)
 
         # Nút "Tải file mẫu"
-        self.download_button = tk.Button(self.download_frame, text="Tải file mẫu", command=self.download_sample_file, font=self.button_font, fg="blue")
+        self.download_button = tk.Button(self.download_frame, text="Tải file mẫu", command=self.download_sample_file, font=self.button_font, fg="DarkBlue")
         self.download_button.pack(side=tk.LEFT, padx=5)
 
         # Nút "Cấu hình quy trình"
@@ -135,17 +140,19 @@ class App:
         self.control_frame = tk.Frame(root)
         self.control_frame.pack(pady=10)
 
-        self.start_button = tk.Button(self.control_frame, text="START", command=self.start_thread, font=self.button_font, fg="green")
+        self.start_button = tk.Button(self.control_frame, text="START", command=self.start_thread, font=self.button_font, fg="DarkGreen")
         self.start_button.grid(row=0, column=0, padx=5)
 
         self.stop_button = tk.Button(self.control_frame, text="STOP", command=self.stop_automation, state=tk.DISABLED, font=self.button_font, fg="red")
-        self.stop_button.grid(row=0, column=1, padx=5)
-
+        self.stop_button.grid(row=0, column=1, padx=5)    
+        
+        # Slogan
+        self.slogan_label = tk.Label(root, text="CÔNG VIỆC LÀ CỦA BẠN - CÒN THAO TÁC LÀ CỦA CHÚNG TÔI", fg="DarkBlue", font=self.slogan_font, anchor='center')
+        self.slogan_label.pack(side=tk.BOTTOM, padx=10, pady=5)
 
         # Chữ ký
-        self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông",fg="purple", font=self.signature_font, anchor='e')
-        self.signature_label.pack(side=tk.BOTTOM, padx=10, pady=10, anchor='se')
-        
+        self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông",fg="Indigo", font=self.signature_font, anchor='e')
+        self.signature_label.pack(side=tk.BOTTOM, padx=10, pady=10, anchor='se', before=self.slogan_label)
     
     def read_quy_trinh_file(self):
         try:
@@ -249,19 +256,19 @@ class App:
 
         
         # # Khởi tạo trình duyệt
-        # # driver = webdriver.Chrome(chromedriver_path) #THƯ MỤC GỐC
+        driver = webdriver.Chrome(chromedriver_path) #THƯ MỤC GỐC
         
         # Khởi tạo ChromeOptions
-        chrome_options = webdriver.ChromeOptions()
+        # chrome_options = webdriver.ChromeOptions()
 
         # Vô hiệu hóa chế độ ẩn danh
-        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        # chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
         # Đường dẫn đến thư mục lưu trữ dữ liệu cá nhân của Chrome
-        chrome_options.add_argument("user-data-dir=C:\\chromedriver")
+        # chrome_options.add_argument("user-data-dir=C:\\chromedriver")
 
         # Khởi tạo trình duyệt với ChromeOptions và đường dẫn của ChromeDriver
-        driver = webdriver.Chrome(executable_path=chromedriver_path, options=chrome_options)
+        # driver = webdriver.Chrome(executable_path=chromedriver_path, options=chrome_options)
         
         df = pd.read_excel(self.file_path)
         
@@ -359,7 +366,7 @@ class App:
                 # Sử dụng dữ liệu từ df_quytrinh để thực hiện các bước cụ thể nếu checkbox được chọn
                 if self.checkbox_quytrinh_var.get():
                     for qt_index, qt_row in self.df_quytrinh.iterrows():
-                        print(f"Processing QuyTrinh row {qt_index + 1}")
+                        print(f"Đang cấu hình Quy trình cho dòng {qt_index + 1}")
                         if self.stop_flag:
                             print("Stop flag set. Exiting loop.")
                             break
@@ -743,6 +750,7 @@ class App:
         quy_trinh_window = tk.Toplevel(self.root)
         quy_trinh_window.title("CẤU HÌNH QUY TRÌNH")
         quy_trinh_window.geometry("1000x600")
+        quy_trinh_window.iconbitmap(self.icon_path)  # Đặt icon cho cửa sổ mới
 
         self.quy_trinh_data = []
         self.form_entries = []  # Khởi tạo form_entries
