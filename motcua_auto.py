@@ -221,7 +221,7 @@ class App:
             self.update_label.config(text="")
 
 
-    def restart_app(self, update_path):
+    def restart_app(self, temp_update_path):
         # Tạo một kịch bản Python để cập nhật ứng dụng
             update_script_content = f'''
 import os
@@ -230,7 +230,7 @@ import time
 import subprocess
 import sys
 
-source = r"{update_path}"
+source = r"{temp_update_path}"
 destination = r"{sys.executable}"
 
 # Chờ một chút để đảm bảo ứng dụng chính đã thoát
