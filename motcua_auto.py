@@ -27,7 +27,7 @@ from urllib.parse import urljoin
 class App:
     def __init__(self, root):
         self.root = root
-        self.root.title("FastSolutions - One Click One Task")
+        self.root.title("FastMotions - One Click One Task")
         self.root.geometry("700x550")
 
         # Đặt icon cho cửa sổ
@@ -63,7 +63,7 @@ class App:
         self.file_entry = tk.Entry(self.file_frame, width=50, font=self.default_font)
         self.file_entry.pack(side=tk.LEFT, padx=5, expand=True, fill=tk.X)
 
-        self.open_button = tk.Button(self.file_frame, text="Open", command=self.open_file, font=self.default_font, fg="DarkBlue")
+        self.open_button = tk.Button(self.file_frame, text="Open", command=self.open_file, font=self.button_font, fg="DarkBlue")
         self.open_button.pack(side=tk.LEFT, padx=5)
         
         
@@ -180,9 +180,11 @@ class App:
         save_path = os.path.join(application_path, "Motcua_auto.exe")
         
         # URL trực tiếp tới tệp .exe trên GitHub
-        url = f"https://github.com/{repo_owner}/{repo_name}/raw/main/{file_path}"
+        url_update = f"https://github.com/{repo_owner}/{repo_name}/raw/main/{file_path}"
         
-        response = requests.get(url, stream=True)
+        response = requests.get(url_update, stream=True)
+        print("Đang kết nối đến Server........")
+        time.sleep(5)
         
         if response.status_code == 200:
             if messagebox.askyesno("Cập nhật", "Có bản cập nhật mới. Bạn có muốn tải xuống và cài đặt không?"):
@@ -365,6 +367,26 @@ class App:
                 
                 # Sử dụng dữ liệu từ df_quytrinh để thực hiện các bước cụ thể nếu checkbox được chọn
                 if self.checkbox_quytrinh_var.get():
+                    
+                    tenqt_value = self.df_quytrinh.iat[1, 1]  # Lấy giá trị ô B6
+                    tenbidanh_value = self.df_quytrinh.iat[1, 2]
+                    
+                    #Mở giao diện cấu hình quy trình
+                    qt_url = url + "/group/guest/quan-tri-quy-trinh?p_p_id=quanlyquytrinh_WAR_ctonegatecoreportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_quanlyquytrinh_WAR_ctonegatecoreportlet_tabs1=Quản+lý+quy+trình&_quanlyquytrinh_WAR_ctonegatecoreportlet_jspPage=%2Fhtml%2Fqlquytrinh%2Fqlqtquytrinh%2Fqlqtquytrinh_add.jsp"
+                                        
+                    driver.get(qt_url)
+                    bidanhqt = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtQuyTrinhAlias")))
+                    bidanhqt.send_keys(tenbidanh_value)
+                        
+                    tenqt = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtQuyTrinhName")))
+                    tenqt.send_keys(tenqt_value)
+                        
+                    bidanhsave = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_add")))
+                    bidanhsave.click()
+    
                     for qt_index, qt_row in self.df_quytrinh.iterrows():
                         print(f"Đang cấu hình Quy trình cho dòng {qt_index + 1}")
                         if self.stop_flag:
@@ -372,35 +394,17 @@ class App:
                             break
                         
                         # Các dữ liệu được lấy ra từ file Excel
-                        tenqt_value = qt_row['Tên quy trình']  # Tên quy trình
-                        tenbidanh_value = qt_row['Bí danh']  # Tên bí danh
                         tenform_value = qt_row['Tên Form']
                         action_value = qt_row['Mã Action']
                         time_value = qt_row['Thời gian']
                         user_group_value = qt_row['Nhóm người dùng']
                         # phongban_value = qt_row['Phòng ban']
+                        
                         #Cấu hình quy trình
-                        qt_url = url + "/group/guest/quan-tri-quy-trinh?p_p_id=quanlyquytrinh_WAR_ctonegatecoreportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_quanlyquytrinh_WAR_ctonegatecoreportlet_tabs1=Quản+lý+quy+trình&_quanlyquytrinh_WAR_ctonegatecoreportlet_jspPage=%2Fhtml%2Fqlquytrinh%2Fqlqtquytrinh%2Fqlqtquytrinh_add.jsp"
                         #Danh sách Form
                         add_qt_url = url +"/group/guest/quan-tri-quy-trinh?p_p_id=quanlyquytrinh_WAR_ctonegatecoreportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_quanlyquytrinh_WAR_ctonegatecoreportlet_tabs1=Quản+lý+form&_quanlyquytrinh_WAR_ctonegatecoreportlet_jspPage=%2Fhtml%2Fqlquytrinh%2Fqlqtform%2Fqlqtform_add.jsp"
                         
-                        #Mở giao diện cấu hình quy trình
-                        driver.get(qt_url)
-                        bidanhqt = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtQuyTrinhAlias")))
-                        bidanhqt.send_keys(tenbidanh_value)
-                        
-                        tenqt = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtQuyTrinhName")))
-                        tenqt.send_keys(tenqt_value)
-                        
-                        bidanhsave = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_add")))
-                        bidanhsave.click()
-                        
-                        # tenqt.send_keys(Keys.ENTER) #Nhấn Enter để lưu
-
-                        
+                                               
                         #Mở giao diện Cấu hình Form
                         driver.get(add_qt_url)
                         
@@ -417,11 +421,10 @@ class App:
                         gantenqt = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.CLASS_NAME, "select2-search__field")))
                         gantenqt.send_keys(tenqt_value)
-                        time.sleep(1)
+                        # time.sleep(1)
                         gantenqt.send_keys(Keys.ENTER) #Nhấn Enter để lưu
                         
-                         
-                        
+                                                 
                         #Cấu hình thời gian(Ngày)
                         timexuly = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_HanXuLyTheoNgay")))
@@ -432,7 +435,7 @@ class App:
                         action = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_MaAction")))
                         action.send_keys(action_value)
-                        time.sleep(1)
+                        # time.sleep(1)
                         
                         # # Tìm dòng có chứa văn bản từ cột "Nhóm người dùng" và check vào checkbox bên cạnh
                         # Chờ đợi cho bảng hiển thị
@@ -480,7 +483,7 @@ class App:
                         #Cấu hình luân chuyển
                         lc_url = url + "/group/guest/quan-tri-quy-trinh?p_p_id=quanlyquytrinh_WAR_ctonegatecoreportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_quanlyquytrinh_WAR_ctonegatecoreportlet_tabs1=Quản+lý+luân+chuyển&_quanlyquytrinh_WAR_ctonegatecoreportlet_jspPage=%2Fhtml%2Fqlquytrinh%2Fqlqtluanchuyen%2Fqlqtluanchuyen_add.jsp&_quanlyquytrinh_WAR_ctonegatecoreportlet_qtQTQuyTrinhID=-1"
                         
-                        #Mở giao diện cấu hình quy trình
+                        #Mở giao diện cấu hình luân chuyển
                         driver.get(lc_url)
                         
                         #chọn quy trình xử lý
@@ -493,31 +496,31 @@ class App:
                         gantenqt_lc.send_keys(tenqt_value)
                         
                         gantenqt_lc.send_keys(Keys.ENTER) #Nhấn Enter để lưu
-                        time.sleep(2)
+                        # time.sleep(2)
                         
                         #Cấu hình Từ form
                         from_form = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtLC_fromformID")))
                         from_form.send_keys(tu_form)
-                        time.sleep(1)
+                        # time.sleep(1)
                         
                         #Cấu hình Đến form
                         to_form = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtLC_toformID_01")))
                         to_form.send_keys(den_form)
-                        time.sleep(1)
+                        # time.sleep(1)
                         
                         #Cấu hình Đến form2
                         to_form2 = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtLC_toformID_02")))
                         to_form2.send_keys(den_form2)
-                        time.sleep(1)
+                        # time.sleep(1)
                         
                         #Cấu hình Đến form3
                         to_form3 = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_qtLC_toformID_03")))
                         to_form3.send_keys(den_form3)
-                        time.sleep(1)
+                        # time.sleep(1)
                 
                         save_lc = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_add")))
