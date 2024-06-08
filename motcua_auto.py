@@ -305,7 +305,7 @@ subprocess.Popen([destination])
         try:
             
             for index, row in df.iterrows():
-                print(f"Đang tự động hóa dòng {index+1} trong file data.xlsx")
+                print(f"ĐANG TỰ ĐỘNG HÓA ĐƠN VỊ {index+1} TRONG DANH SÁCH !")
                 if self.stop_flag:
                     print("Stop flag set. Exiting loop.")
                     break
@@ -416,7 +416,7 @@ subprocess.Popen([destination])
                     bidanhsave.click()
     
                     for qt_index, qt_row in self.df_quytrinh.iterrows():
-                        print(f"Đang cấu hình Quy trình cho dòng: {qt_index + 1}")
+                        print(f"Đang cấu hình Quy trình bước: {qt_index + 1}")
                         if self.stop_flag:
                             print("Stop flag set. Exiting loop.")
                             break
@@ -496,7 +496,7 @@ subprocess.Popen([destination])
                     
                     # Thao tác với dữ liệu từ sheet "LuanChuyen"                    
                     for lc_index, lc_row in self.df_luanchuyen.iterrows():
-                        print(f"Đang cấu hình Luân Chuyển cho dòng: {lc_index + 1}")
+                        print(f"Đang cấu hình Luân Chuyển bước: {lc_index + 1}")
                         if self.stop_flag:
                             print("Stop flag set. Exiting loop.")
                             break
