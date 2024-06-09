@@ -780,7 +780,7 @@ subprocess.Popen([destination])
         
         quy_trinh_window = tk.Toplevel(self.root)
         quy_trinh_window.title("CẤU HÌNH QUY TRÌNH")
-        quy_trinh_window.geometry("1000x600")
+        quy_trinh_window.geometry("1050x600")
         quy_trinh_window.iconbitmap(self.icon_path)  # Đặt icon cho cửa sổ mới
 
         self.quy_trinh_data = []
@@ -849,7 +849,7 @@ subprocess.Popen([destination])
         id_label = tk.Label(self.danh_sach_form_frame, text=str(id), font=self.default_font2)
         id_label.grid(row=row, column=0, padx=0.5, pady=0.5)
 
-        ten_form_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2, width=40)
+        ten_form_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2, width=35)
         ten_form_entry.grid(row=row, column=1, padx=0.5, pady=0.5)
 
         action_menu = ttk.Combobox(self.danh_sach_form_frame, values=["Thêm mới", "Chuyển xử lý", "Trình phê duyệt", "Chuyển ban hành", "Chuyển trả kết quả"], font=self.default_font2, state='readonly')
@@ -858,18 +858,27 @@ subprocess.Popen([destination])
         thoi_gian_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
         thoi_gian_entry.grid(row=row, column=3, padx=0.5, pady=0.5)
 
-        nhom_nguoi_dung_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
-        nhom_nguoi_dung_entry.grid(row=row, column=4, padx=0.5, pady=0.5)
-
-        phongban_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2, width=23)
+        # nhom_nguoi_dung_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
+        # nhom_nguoi_dung_entry.grid(row=row, column=4, padx=0.5, pady=0.5)
+        
+        # Danh sách các giá trị với một dòng trống ở cuối
+        values = ["Một cửa", "Một cửa chứng thực", "Chuyên viên", "Cán bộ", "Công chức", "Chuyên viên thụ lý hồ sơ", "Tư pháp - Hộ tịch", "Lãnh đạo phòng", "Lãnh đạo đơn vị", "Văn thư"]
+        
+        self.nguoidung_menu = ttk.Combobox(self.danh_sach_form_frame, values=values, font=self.default_font2, state='normal')
+        self.nguoidung_menu.grid(row=row, column=4, padx=0.5, pady=0.5)
+      
+        phongban_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2, width=25)
         phongban_entry.grid(row=row, column=5, padx=0.5, pady=0.5)
         
         delete_button = tk.Button(self.danh_sach_form_frame, text="Xóa", command=lambda: self.delete_form_entry(id), font=self.button_font2, fg="red")
         delete_button.grid(row=row, column=6, padx=0.5, pady=0.5)
 
-        self.form_entries.append((id_label, ten_form_entry, action_menu, thoi_gian_entry, nhom_nguoi_dung_entry, phongban_entry, delete_button))
+        # self.form_entries.append((id_label, ten_form_entry, action_menu, thoi_gian_entry, nhom_nguoi_dung_entry, phongban_entry, delete_button))
+        self.form_entries.append((id_label, ten_form_entry, action_menu, thoi_gian_entry, self.nguoidung_menu, phongban_entry, delete_button))
+
         self.update_luan_chuyen_menus()
 
+    
     def delete_form_entry(self, id):
         for entry in self.form_entries:
             if entry[0].cget("text") == str(id):
