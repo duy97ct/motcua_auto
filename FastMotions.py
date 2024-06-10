@@ -157,7 +157,7 @@ class App:
         self.stop_button.grid(row=0, column=1, padx=5)    
         
         # Slogan
-        self.slogan_label = tk.Label(root, text="CÔNG VIỆC LÀ CỦA BẠN - CÒN THAO TÁC LÀ CỦA CHÚNG TÔI !", fg="DarkBlue", font=self.slogan_font, anchor='center')
+        self.slogan_label = tk.Label(root, text="CÔNG VIỆC LÀ CỦA BẠN - THAO TÁC LÀ CỦA CHÚNG TÔI !", fg="DarkBlue", font=self.slogan_font, anchor='center')
         self.slogan_label.pack(side=tk.BOTTOM, padx=10, pady=5)
 
         # Chữ ký
@@ -316,7 +316,8 @@ subprocess.Popen([destination])
                 now_year = datetime.now().year
                 value1 = row['admin']
                 value2 = row['pass']
-
+                donvi = row['Đơn vị']
+                
                 # Đường dẫn đồng bộ TTC
                 value3 = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewDanhMucThuTucChung"
                 
@@ -417,7 +418,7 @@ subprocess.Popen([destination])
                     bidanhsave.click()
     
                     for qt_index, qt_row in self.df_quytrinh.iterrows():
-                        print(f"Đang cấu hình Quy trình bước: {qt_index + 1}")
+                        print(f"Đang cấu hình Quy trình bước {qt_index + 1} cho: {donvi}")
                         if self.stop_flag:
                             print("Stop flag set. Exiting loop.")
                             break
@@ -427,8 +428,8 @@ subprocess.Popen([destination])
                         action_value = qt_row['Mã Action']
                         time_value = qt_row['Thời gian']
                         user_group_value = qt_row['Nhóm người dùng']
-                        # phongban_value = qt_row['Phòng ban']
-                        
+                        phongban_value = qt_row['Phòng ban']
+
                         #Cấu hình quy trình
                         #Danh sách Form
                         add_qt_url = url +"/group/guest/quan-tri-quy-trinh?p_p_id=quanlyquytrinh_WAR_ctonegatecoreportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_quanlyquytrinh_WAR_ctonegatecoreportlet_tabs1=Quản+lý+form&_quanlyquytrinh_WAR_ctonegatecoreportlet_jspPage=%2Fhtml%2Fqlquytrinh%2Fqlqtform%2Fqlqtform_add.jsp"
@@ -478,14 +479,53 @@ subprocess.Popen([destination])
                             # Lấy văn bản trong thẻ td đầu tiên
                             role_name = row.find_element(By.TAG_NAME, "td").text.strip()
                             # Kiểm tra xem role_name có chứa giá trị bạn muốn không
-                            if user_group_value in role_name:
+                            if user_group_value.lower() in role_name.lower(): #chuyển dữ liệu thành chữ thường và so khớp
                                 # Tìm checkbox
                                 checkbox = row.find_element(By.CLASS_NAME, "roleInput")
                                 # Kiểm tra nếu không được chọn thì kích vào nó
                                 if not checkbox.is_selected():
                                     checkbox.click()
-                                break  # Dừng vòng lặp sau khi đã tìm thấy và kích vào checkbox  
+                                break  # Dừng vòng lặp sau khi đã tìm thấy và kích vào checkbox 
+                                time.sleep(1)
+                        
+                        
+                        # # Tìm dòng có chứa văn bản từ cột "Đơn vị" trong file DATA và check vào checkbox bên cạnh                        
+                        table_pb = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".rights-department-detail .tableqtquyen")))
 
+                        # Tìm tất cả các dòng trong bảng
+                        rows_pb = table_pb.find_elements(By.CLASS_NAME, "rowChiTiet")
+
+                        # Duyệt qua từng dòng và chọn checkbox dựa trên nội dung của cột đầu tiên
+                        for row in rows_pb:
+                            # Lấy tất cả các thẻ td trong dòng hiện tại
+                            tds = row.find_elements(By.TAG_NAME, "td")
+                            
+                            # Kiểm tra số lượng thẻ td có lớn hơn 1 để lấy giá trị dòng 2
+                            if len(tds) > 1:
+                                td_pb = tds[0].text.strip()
+                                                               
+                                # Kiểm tra nếu phongban_value là một chuỗi và không phải là NaN
+                                if isinstance(phongban_value, str) and phongban_value.strip():
+                                    if phongban_value.lower() in td_pb.lower():
+                                        # Tìm checkbox
+                                        checkbox = tds[1].find_element(By.TAG_NAME, "input")
+                                        # print(f"Tìm thấy giá trị khớp: {td_pb}")
+                                        
+                                        if not checkbox.is_selected(): # Kiểm tra nếu không được chọn thì kích vào nó
+                                            checkbox.click()
+                                            print("Checked")
+                                        break  # Dừng vòng lặp sau khi đã tìm thấy và kích vào checkbox
+                                else:  # Nếu phongban_value không có dữ liệu, sử dụng donvi
+                                    if donvi.lower() in td_pb.lower():
+                                        # Tìm checkbox
+                                        checkbox = tds[1].find_element(By.TAG_NAME, "input")
+                                        # print(f"Tìm thấy giá trị khớp: {td_pb}")
+                                        
+                                        if not checkbox.is_selected(): # Kiểm tra nếu không được chọn thì kích vào nó
+                                            checkbox.click()
+                                            print("Checked")
+                                        break  # Dừng vòng lặp sau khi đã tìm thấy và kích vào checkbox
+                                
                         save = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_add")))
                         save.click()
@@ -497,7 +537,7 @@ subprocess.Popen([destination])
                     
                     # Thao tác với dữ liệu từ sheet "LuanChuyen"                    
                     for lc_index, lc_row in self.df_luanchuyen.iterrows():
-                        print(f"Đang cấu hình Luân Chuyển bước: {lc_index + 1}")
+                        print(f"Đang cấu hình Luân Chuyển bước {lc_index + 1} cho: {donvi}")
                         if self.stop_flag:
                             print("Stop flag set. Exiting loop.")
                             break
@@ -573,13 +613,13 @@ subprocess.Popen([destination])
                     ma_click.send_keys(tthc_lc)
                         
                     #click vào nút tìm kiếm
+                    # time.sleep(2)
+                   
                     search_click = WebDriverWait(driver, 10).until(
                     EC.element_to_be_clickable((By.XPATH, "//button[@name='btnSearch' and @value='search']")))
                     search_click.click()
-                    
-                    # url_update_dvc = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_DanhMuc_WAR_ctonegateportlet_token=b95873f80bd19a49a85e927682122e1e&_DanhMuc_WAR_ctonegateportlet_thuTucId=145108&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewEditDanhMucThuTuc"
-                    # driver.get(url_update_dvc)    
-
+                    # time.sleep(2)
+                       
                     table1 = driver.find_element(By.CLASS_NAME, "table-data")
                     rows = table1.find_elements(By.TAG_NAME, "tr")
 
@@ -613,7 +653,7 @@ subprocess.Popen([destination])
                      
                 #Thao tac dong bo thu tuc chung
                 if self.checkbox_dongboTTC.get():
-                    print(f"Đang đồng bộ TTC cho hàng {index+1}")
+                    print(f"Đang đồng bộ TTC cho: {donvi}")
                     driver.get(value3)
                     dongbo_ttc = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "btnDongBo")))
@@ -622,7 +662,7 @@ subprocess.Popen([destination])
                 
                 #Thao tac dong bo dich vu cong
                 if self.checkbox_dongboDVC.get():
-                    print(f"Đang đồng bộ DVC cho hàng {index+1}")
+                    print(f"Đang đồng bộ DVC cho: {donvi}")
                     driver.get(value4)
                     dongbo_dvc = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "btnDongBo")))
@@ -635,7 +675,7 @@ subprocess.Popen([destination])
                     
                 #Thao tac sao chép sổ văn bản
                 if self.checkbox_copysovb_var.get():
-                    print(f"Đang copy sổ văn bản cho hàng {index+1}")
+                    print(f"Đang copy sổ văn bản cho: {donvi}")
                     driver.get(value7)
                     copy_sovb_from = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_DanhMuc_WAR_ctonegateportlet_namCopy")))
@@ -651,7 +691,7 @@ subprocess.Popen([destination])
 
                 #Thao tác đồng bộ lĩnh vực
                 if self.checkbox_dongbolv.get():
-                    print(f"Đang đồng bộ Lĩnh vực cho hàng {index+1}")
+                    print(f"Đang đồng bộ Lĩnh vực cho: {donvi}")
                     driver.get(value6)
                     dongbo_linhvuc = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "btnDongBo")))
@@ -663,7 +703,7 @@ subprocess.Popen([destination])
                 if self.checkbox_offnamsau_var.get():
                     
                     holiday_year = next_year if self.holiday_year_choice.get() == "Năm sau" else now_year
-                    print(f"Đang cấu hình Ngày Nghỉ lễ cho hàng {index+1}")
+                    print(f"Đang cấu hình Ngày Nghỉ lễ cho: {donvi}")
                     driver.get(value5)
                     
                     # Cấu hình nghỉ Tết dương lịch
@@ -774,7 +814,7 @@ subprocess.Popen([destination])
         finally:
             driver.quit()
             self.stop_button.config(state=tk.DISABLED)
-            print("ĐÃ HOÀN TẤT !!!")
+            print("QUÁ TRÌNH TỰ ĐỘNG HÓA ĐÃ HOÀN TẤT !!!")
             
     def open_quy_trinh_window(self):
         
@@ -815,7 +855,7 @@ subprocess.Popen([destination])
 
 
         self.add_form_entry()  # Thêm form entry đầu tiên
-
+        
         self.add_form_button = tk.Button(self.danh_sach_form_frame, text="Thêm 1 hàng", command=self.add_form_entry, font=self.button_font2, fg="purple")
         self.add_form_button.grid(row=999, column=0, columnspan=5, pady=5)
 
