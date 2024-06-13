@@ -11,10 +11,13 @@ import time
 import tkinter as tk
 import requests
 import subprocess
+from PIL import Image, ImageTk
 from tkinter import filedialog, messagebox
+from tkinter import PhotoImage
 import threading
 import os
 import sys
+import webbrowser
 from openpyxl.styles import Font
 from tkinter import ttk
 from openpyxl import Workbook
@@ -28,7 +31,7 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title("FastMotions - One Click One Task")
-        self.root.geometry("700x570")
+        self.root.geometry("700x580")
 
         
          # Đặt biểu tượng cho ứng dụng
@@ -51,19 +54,42 @@ class App:
         self.title_font = ("Helvetica", 16, "bold")
         self.signature_font = ("Helvetica",9)
         self.slogan_font = ("Helvetica", 12, "italic", "bold")
+        # self.youtube_font = ("YouTube Sans", 10)
         
+        
+        # Nút "Check Update"
+        self.check_update_button = tk.Button(root, text="Check Update", background="#F0FFF0", command=self.check_for_update, width=11)
+        self.check_update_button.pack(anchor='se', padx=5, pady=(5, 3))  # Giảm khoảng cách dưới nút "Check Update"
 
-        # Tạo nút "Check Update"
-        self.check_update_button = tk.Button(root, text="Check Update", command=self.check_for_update)
-        self.check_update_button.pack(anchor='se', padx=5, pady=5)
+        # Lấy kích thước của nút "Check Update"
+        check_update_width = self.check_update_button.winfo_reqwidth()
+        check_update_height = self.check_update_button.winfo_reqheight()
+
+        # Tính toán kích thước nút YouTube dựa trên kích thước của nút "Check Update"
+        youtube_button_width = check_update_width
+        youtube_button_height = check_update_height
+
+        # Nút "YouTube"
+        # self.original_image = Image.open("logo.ico")
+        # resized_image = self.original_image.resize((20, 20), Image.LANCZOS)
+        # self.youtube_icon = ImageTk.PhotoImage(resized_image)
+
+        # self.youtube_button = tk.Button(root, text="YouTube", image=self.youtube_icon, compound="left", command=self.open_youtube, fg="black", background="#FFCCCC", padx=5, pady=2)
+        self.youtube_button = tk.Button(root, text="Hướng dẫn", compound="left", command=self.open_youtube, fg="black", background="#FFCCCC", width=11)
+
+        self.youtube_button.pack(anchor='se', padx=5, pady=(0, 0))
         
-        # Tạo nhãn thông báo
-        self.update_label = tk.Label(root, text="", font=("Helvetica", 12), fg="blue")
-        self.update_label.pack(anchor='center', pady=2)
+        # Căn chỉnh hình ảnh logo YouTube
+        # self.youtube_button.image = self.youtube_icon  # Đảm bảo hình ảnh được giữ bởi nút
+        # self.youtube_button.config(anchor="w") 
+        
+        # Nhãn thông báo
+        self.update_label = tk.Label(root, text="", font=("Helvetica", 12), fg="DarkBlue")
+        self.update_label.pack(anchor='center', pady=0)
         
         # Tiêu đề
         self.title_label = tk.Label(root, text="PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC\nHỆ THỐNG MỘT CỬA ĐIỆN TỬ", fg="red", font=self.title_font)
-        self.title_label.pack(pady=10)
+        self.title_label.pack(pady=0)
         
 
         # Khung chứa phần chọn file
@@ -163,6 +189,10 @@ class App:
         # Chữ ký
         self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông",fg="Indigo", font=self.signature_font, anchor='e')
         self.signature_label.pack(side=tk.BOTTOM, padx=10, pady=10, anchor='se', before=self.slogan_label)
+    
+    
+    def open_youtube(self):
+        webbrowser.open_new_tab("https://www.youtube.com/@FastMotions97")
     
     def read_quy_trinh_file(self):
         try:
@@ -277,7 +307,7 @@ subprocess.Popen([destination])
         self.stop_flag = True
 
     def start_automation(self):
-    
+        
         
         # Xác định đường dẫn của ChromeDriver
         if getattr(sys, 'frozen', False):
@@ -289,18 +319,7 @@ subprocess.Popen([destination])
         # # Khởi tạo trình duyệt
         driver = webdriver.Chrome(chromedriver_path) #THƯ MỤC GỐC
         
-        # Khởi tạo ChromeOptions
-        # chrome_options = webdriver.ChromeOptions()
-
-        # Vô hiệu hóa chế độ ẩn danh
-        # chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-
-        # Đường dẫn đến thư mục lưu trữ dữ liệu cá nhân của Chrome
-        # chrome_options.add_argument("user-data-dir=C:\\chromedriver")
-
-        # Khởi tạo trình duyệt với ChromeOptions và đường dẫn của ChromeDriver
-        # driver = webdriver.Chrome(executable_path=chromedriver_path, options=chrome_options)
-        
+      
         df = pd.read_excel(self.file_path)
         
         try:
@@ -334,48 +353,48 @@ subprocess.Popen([destination])
                 value7 = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=saoChepDanhMucSoVanBan"
 
                 # Cấu hình nghỉ dương lịch
-                duonglich_from = row['off_duonglich_from'] #Nghỉ Dương Lịch từ
+                duonglich_from = row['Nghỉ Tết Dương lịch từ'] #Nghỉ Dương Lịch từ
                 if isinstance(duonglich_from, pd.Timestamp):
                     duonglich_from = duonglich_from.strftime('%d/%m/%Y')
                 
-                duonglich_to = row['off_duonglich_to'] #Nghỉ Dương Lịch đến
+                duonglich_to = row['Nghỉ Tết Dương lịch đến'] #Nghỉ Dương Lịch đến
                 if isinstance(duonglich_to, pd.Timestamp):
                     duonglich_to = duonglich_to.strftime('%d/%m/%Y')
                 
                 
                 # Cấu hình nghỉ nguyên đán
-                nguyendan_from = row['off_nguyendan_from'] #Nghỉ Tết Nguyên Đán từ
+                nguyendan_from = row['Nghỉ Tết Nguyên đán từ'] #Nghỉ Tết Nguyên Đán từ
                 if isinstance(nguyendan_from, pd.Timestamp):
                     nguyendan_from = nguyendan_from.strftime('%d/%m/%Y')
                 
-                nguyendan_to = row['off_nguyendan_to'] #Nghỉ Tết Nguyên Đán đến
+                nguyendan_to = row['Nghỉ Tết Nguyên đán đến'] #Nghỉ Tết Nguyên Đán đến
                 if isinstance(nguyendan_to, pd.Timestamp):
                     nguyendan_to = nguyendan_to.strftime('%d/%m/%Y')
 
                 # Cấu hình nghỉ Giỗ Tổ Hùng Vương
-                gioto_from = row['off_gioto_from'] #nghỉ Giỗ Tổ Hùng Vương từ
+                gioto_from = row['Nghỉ Giỗ tổ từ'] #nghỉ Giỗ Tổ Hùng Vương từ
                 if isinstance(gioto_from, pd.Timestamp):
                     gioto_from = gioto_from.strftime('%d/%m/%Y')
                 
-                gioto_to = row['off_gioto_to'] #nghỉ Giỗ Tổ Hùng Vương đến
+                gioto_to = row['Nghỉ Giổ tổ đến'] #nghỉ Giỗ Tổ Hùng Vương đến
                 if isinstance(gioto_to, pd.Timestamp):
                     gioto_to = gioto_to.strftime('%d/%m/%Y')
 
                 #Cấu hình nghỉ 30/4 và 1/5                                                                                       
-                giaiphong_from = row['off_30/4_va_1/5_from'] #nghỉ 30/4 và 1/5 từ
+                giaiphong_from = row['Nghỉ 30/4 và 1/5 từ'] #nghỉ 30/4 và 1/5 từ
                 if isinstance(giaiphong_from, pd.Timestamp):
                     giaiphong_from = giaiphong_from.strftime('%d/%m/%Y')
                 
-                giaiphong_to = row['off_30/4_va_1/5_to'] #nghỉ 30/4 và 1/5 đến
+                giaiphong_to = row['Nghỉ 30/4 và 1/5 đến'] #nghỉ 30/4 và 1/5 đến
                 if isinstance(giaiphong_to, pd.Timestamp):
                     giaiphong_to = giaiphong_to.strftime('%d/%m/%Y')
 
                 #Cấu hình Nghỉ lễ 2/9
-                quockhanh_from = row['off_2/9_from'] #nghỉ Quốc khánh từ
+                quockhanh_from = row['Nghỉ 2/9 từ'] #nghỉ Quốc khánh từ
                 if isinstance(quockhanh_from, pd.Timestamp):
                     quockhanh_from = quockhanh_from.strftime('%d/%m/%Y')
                 
-                quockhanh_to = row['off_2/9_to'] #nghỉ Quốc khánh đến
+                quockhanh_to = row['Nghỉ 2/9 đến'] #nghỉ Quốc khánh đến
                 if isinstance(quockhanh_to, pd.Timestamp):
                     quockhanh_to = quockhanh_to.strftime('%d/%m/%Y')
 
@@ -671,7 +690,7 @@ subprocess.Popen([destination])
                     sync_button = WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.XPATH, '//a[@onclick="dongBoThuTuc();"]')))
                     sync_button.click()
-                    time.sleep(33)
+                    time.sleep(40)
                     
                 #Thao tac sao chép sổ văn bản
                 if self.checkbox_copysovb_var.get():
@@ -724,7 +743,7 @@ subprocess.Popen([destination])
                     
                     thoigian_duonglich_to.send_keys(Keys.ENTER)
                     thoigian_duonglich_to.send_keys(Keys.ENTER)
-                    time.sleep(3)
+                    # time.sleep(1)
 
                     # Cấu hình nghỉ Tết nguyên đáng
                     driver.get(value5)
@@ -744,7 +763,7 @@ subprocess.Popen([destination])
                     
                     thoigian_nguyendan_to.send_keys(Keys.ENTER)
                     thoigian_nguyendan_to.send_keys(Keys.ENTER)
-                    time.sleep(3)
+                    # time.sleep(3)
 
 
                     #Cấu hình Nghỉ Giỗ Tổ Hùng Vương
@@ -765,7 +784,7 @@ subprocess.Popen([destination])
                     
                     thoigian_gioto_to.send_keys(Keys.ENTER)
                     thoigian_gioto_to.send_keys(Keys.ENTER)
-                    time.sleep(3)
+                    # time.sleep(3)
 
                     #Cấu hình nghỉ 30/4 và 1/5
                     driver.get(value5)
@@ -785,7 +804,7 @@ subprocess.Popen([destination])
                     
                     thoigian_giaiphong_to.send_keys(Keys.ENTER)
                     thoigian_giaiphong_to.send_keys(Keys.ENTER)
-                    time.sleep(3)
+                    # time.sleep(3)
 
                     #Cấu hình nghỉ Lễ Quốc khánh 2/9
                     driver.get(value5)
@@ -805,7 +824,7 @@ subprocess.Popen([destination])
                     
                     thoigian_quockhanh_to.send_keys(Keys.ENTER)
                     thoigian_quockhanh_to.send_keys(Keys.ENTER)
-                    time.sleep(3)
+                    # time.sleep(3)
 
                 logout_url = urljoin(driver.current_url, "/c/portal/logout")
                 driver.get(logout_url)
