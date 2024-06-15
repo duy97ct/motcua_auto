@@ -189,8 +189,7 @@ class App:
         # Chữ ký
         self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông",fg="Indigo", font=self.signature_font, anchor='e')
         self.signature_label.pack(side=tk.BOTTOM, padx=10, pady=10, anchor='se', before=self.slogan_label)
-    
-    
+        
     def open_youtube(self):
         webbrowser.open_new_tab("https://www.youtube.com/@FastMotions97")
     
@@ -203,8 +202,7 @@ class App:
         except Exception as e:
             messagebox.showerror("Lỗi", f"Lỗi khi đọc file quy trình: {str(e)}")
             self.quy_trinh_data = None
-        
-    
+            
     def check_for_update(self):
         # URL của tệp cập nhật trên GitHub
         repo_owner = "duy97ct"
@@ -250,7 +248,6 @@ class App:
             messagebox.showerror("Lỗi", "Không thể tải tệp cập nhật. Vui lòng thử lại sau.")
             self.update_label.config(text="")
 
-
     def restart_app(self, temp_update_path):
         # Tạo một kịch bản Python để cập nhật ứng dụng
             update_script_content = f'''
@@ -289,7 +286,6 @@ subprocess.Popen([destination])
             subprocess.Popen([sys.executable, update_script_path])
     # Xóa file kịch bản cập nhật sau khi hoàn tất
             os.remove(update_script_path)
-
     
     def open_file(self):
         self.file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
@@ -316,8 +312,8 @@ subprocess.Popen([destination])
             chromedriver_path = "chromedriver.exe"
 
         
-        # # Khởi tạo trình duyệt
-        driver = webdriver.Chrome(chromedriver_path) #THƯ MỤC GỐC
+        # Khởi tạo trình duyệt
+        driver = webdriver.Chrome(chromedriver_path) 
         
       
         df = pd.read_excel(self.file_path)
@@ -337,6 +333,7 @@ subprocess.Popen([destination])
                 value2 = row['pass']
                 donvi = row['Đơn vị']
                 
+                                
                 # Đường dẫn đồng bộ TTC
                 value3 = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewDanhMucThuTucChung"
                 
@@ -896,9 +893,6 @@ subprocess.Popen([destination])
         # self.download_button.pack(pady=5) # nút Tải về nằm rời bên dưới
         self.download_button.grid(row=999, column=3, columnspan=5, pady=5)
         
-        
-
-
     def add_form_entry(self, id=None):
         if id is None:
             id = len(self.form_entries) + 1
@@ -936,7 +930,6 @@ subprocess.Popen([destination])
         self.form_entries.append((id_label, ten_form_entry, action_menu, thoi_gian_entry, self.nguoidung_menu, phongban_entry, delete_button))
 
         self.update_luan_chuyen_menus()
-
     
     def delete_form_entry(self, id):
         for entry in self.form_entries:
@@ -953,7 +946,6 @@ subprocess.Popen([destination])
             entry[0].config(text=str(idx + 1))
             for widget in entry:
                 widget.grid_configure(row=idx + 1)
-
     
     def add_luan_chuyen_entry(self):
         row = len(self.luan_chuyen_entries) + 1
