@@ -50,7 +50,7 @@ class App:
         # Thiết lập font chữ tổng thể
         self.default_font = ("Helvetica", 13)
         self.default_font2 = ("Helvetica", 10, "bold")
-        self.default_font3 = ("Helvetica", 9)
+        self.default_font3 = ("Helvetica", 10)
         self.button_font = ("Helvetica", 13, "bold")
         self.button_font2 = ("Helvetica", 10, "bold")
         self.title_font = ("Helvetica", 16, "bold")
@@ -82,7 +82,7 @@ class App:
         self.update_label.pack(anchor='center', pady=0)
         
         # Tiêu đề
-        self.title_label = tk.Label(root, text="PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC\nHỆ THỐNG MỘT CỬA ĐIỆN TỬ", fg="red", font=self.title_font)
+        self.title_label = tk.Label(root, text="PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC\nHỆ THỐNG MỘT CỬA ĐIỆN TỬ", fg="#DF0029", font=self.title_font)
         self.title_label.pack(pady=0)
         
 
@@ -172,7 +172,7 @@ class App:
         self.start_button = tk.Button(self.control_frame, text="START", command=self.start_thread, font=self.button_font, fg="DarkGreen")
         self.start_button.grid(row=0, column=0, padx=5)
 
-        self.stop_button = tk.Button(self.control_frame, text="STOP", command=self.stop_automation, state=tk.DISABLED, font=self.button_font, fg="red")
+        self.stop_button = tk.Button(self.control_frame, text="STOP", command=self.stop_automation, state=tk.DISABLED, font=self.button_font, fg="#FF0000")
         self.stop_button.grid(row=0, column=1, padx=5)    
         
         # Slogan
@@ -454,7 +454,7 @@ subprocess.Popen([destination])
                         
                         #chọn quy trình xử lý
                         chonqt = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rendered")))
+                        EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rende#FF0000")))
                         chonqt.click()
                         
                         gantenqt = WebDriverWait(driver, 10).until(
@@ -566,7 +566,7 @@ subprocess.Popen([destination])
                         
                         #chọn quy trình xử lý
                         chonqt_lc = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rendered")))
+                        EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rende#FF0000")))
                         chonqt_lc.click()
                         
                         gantenqt_lc = WebDriverWait(driver, 10).until(
@@ -646,7 +646,7 @@ subprocess.Popen([destination])
                                                
                     #chọn quy trình gắn vào TTHC
                     chonqt_tthc = WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rendered")))
+                    EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rende#FF0000")))
                     chonqt_tthc.click()
                         
                     dien_tthc = WebDriverWait(driver, 10).until(
@@ -843,15 +843,15 @@ subprocess.Popen([destination])
         self.quy_trinh_frame.pack(fill="x", padx=10, pady=5)
 
         tk.Label(self.quy_trinh_frame, text="Tên quy trình:", font=self.default_font2).grid(row=0, column=0, padx=0, pady=0, sticky='w')
-        self.ten_quy_trinh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=50)
+        self.ten_quy_trinh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font3, width=50)
         self.ten_quy_trinh_entry.grid(row=0, column=1, padx=0.5, pady=0.5)
 
         tk.Label(self.quy_trinh_frame, text="Bí danh quy trình:", font=self.default_font2).grid(row=1, column=0, padx=0, pady=0, sticky='w')
-        self.bi_danh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=50)
+        self.bi_danh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font3, width=50)
         self.bi_danh_entry.grid(row=1, column=1, padx=0.5, pady=0.5)
         
         tk.Label(self.quy_trinh_frame, text="Gắn vào TTHC:", font=self.default_font2).grid(row=0, column=3, padx=5, pady=5, sticky='w')
-        self.tthc_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=50)
+        self.tthc_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font3, width=50)
         self.tthc_entry.grid(row=0, column=4, padx=0.5, pady=0.5)
         
         # Khung chứa Danh sách Form
@@ -867,11 +867,11 @@ subprocess.Popen([destination])
 
         self.add_form_entry()  # Thêm form entry đầu tiên
         
-        self.add_form_button = tk.Button(self.danh_sach_form_frame, text="Thêm 1 hàng", command=self.add_form_entry, font=self.button_font2, fg="purple")
-        self.add_form_button.grid(row=999, column=0, columnspan=5, pady=5)
+        self.add_form_button = tk.Button(self.danh_sach_form_frame, text="Thêm 1 hàng", command=self.add_form_entry, font=self.button_font2, fg="#C71585")
+        self.add_form_button.grid(row=999, column=0, columnspan=10, pady=5, padx=10)
 
         # Nút "Xong"
-        self.done_button = tk.Button(self.danh_sach_form_frame, text="Xong", command=self.save_form_state, font=self.button_font2, fg="green")
+        self.done_button = tk.Button(self.danh_sach_form_frame, text="Xong", command=self.save_form_state, font=self.button_font2, fg="#004400")
         self.done_button.grid(row=999, column=4, columnspan=5, pady=5)
 
         # Khung chứa Danh sách Luân chuyển
@@ -880,13 +880,13 @@ subprocess.Popen([destination])
 
         self.add_luan_chuyen_entry()  # Thêm luân chuyển entry đầu tiên
 
-        self.add_luan_chuyen_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Thêm 1 hàng", command=self.add_luan_chuyen_entry, font=self.button_font2, fg="purple")
-        self.add_luan_chuyen_button.grid(row=999, column=0, columnspan=3, pady=5)
+        self.add_luan_chuyen_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Thêm 1 hàng", command=self.add_luan_chuyen_entry, font=self.button_font2, fg="#C71585")
+        self.add_luan_chuyen_button.grid(row=999, column=0, columnspan=8, pady=5)
 
         # Nút tải về
-        self.download_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Tải về", command=self.export_to_excel, font=self.button_font2, fg="blue")
+        self.download_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Tải về", command=self.export_to_excel, font=self.button_font2, fg="DarkBlue")
         # self.download_button.pack(pady=5) # nút Tải về nằm rời bên dưới
-        self.download_button.grid(row=999, column=3, columnspan=5, pady=5)
+        self.download_button.grid(row=999, column=5, columnspan=6, pady=5)
         
     def add_form_entry(self, id=None):
         if id is None:
@@ -897,22 +897,19 @@ subprocess.Popen([destination])
         id_label = tk.Label(self.danh_sach_form_frame, text=str(id), font=self.default_font2)
         id_label.grid(row=row, column=0, padx=0.5, pady=0.5)
 
-        ten_form_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2, width=35)
+        ten_form_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font3, width=35)
         ten_form_entry.grid(row=row, column=1, padx=0.5, pady=0.5)
 
-        action_menu = ttk.Combobox(self.danh_sach_form_frame, values=["Thêm mới", "Chuyển xử lý", "Trình phê duyệt", "Chuyển ban hành", "Chuyển trả kết quả"], font=self.default_font2, state='readonly')
+        action_menu = ttk.Combobox(self.danh_sach_form_frame, values=["Thêm mới", "Chuyển xử lý", "Trình phê duyệt", "Chuyển ban hành", "Chuyển trả kết quả"], font=self.default_font3, state='readonly')
         action_menu.grid(row=row, column=2, padx=0.5, pady=0.5)
 
-        thoi_gian_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
+        thoi_gian_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font3)
         thoi_gian_entry.grid(row=row, column=3, padx=0.5, pady=0.5)
-
-        # nhom_nguoi_dung_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
-        # nhom_nguoi_dung_entry.grid(row=row, column=4, padx=0.5, pady=0.5)
         
         # Danh sách các giá trị với một dòng trống ở cuối
         values = ["Một cửa", "Một cửa chứng thực", "Chuyên viên", "Cán bộ", "Công chức", "Chuyên viên thụ lý hồ sơ", "Tư pháp - Hộ tịch", "Lãnh đạo phòng", "Lãnh đạo đơn vị", "Văn thư"]
         
-        self.nguoidung_menu = ttk.Combobox(self.danh_sach_form_frame, values=values, font=self.default_font2, state='normal')
+        self.nguoidung_menu = ttk.Combobox(self.danh_sach_form_frame, values=values, font=self.default_font3, state='normal')
         self.nguoidung_menu.grid(row=row, column=4, padx=0.5, pady=0.5)
       
         phongban_entry = ttk.Entry(self.danh_sach_form_frame, font=self.placeholder_font, width=27)
@@ -923,7 +920,7 @@ subprocess.Popen([destination])
         phongban_entry.bind("<FocusOut>", lambda event: self.set_placeholder(event, self.placeholder_text))
 
         
-        delete_button = tk.Button(self.danh_sach_form_frame, text="Xóa", command=lambda: self.delete_form_entry(id), font=self.button_font2, fg="red")
+        delete_button = tk.Button(self.danh_sach_form_frame, text="Xóa", command=lambda: self.delete_form_entry(id), font=self.button_font2, fg="#FF0000")
         delete_button.grid(row=row, column=6, padx=0.5, pady=0.5)
 
         # self.form_entries.append((id_label, ten_form_entry, action_menu, thoi_gian_entry, nhom_nguoi_dung_entry, phongban_entry, delete_button))
@@ -963,28 +960,28 @@ subprocess.Popen([destination])
         from_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Từ Form", font=self.default_font2)
         from_form_label.grid(row=row, column=0, padx=0.5, pady=0.5)
 
-        from_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        from_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font3, state='readonly')
         from_form_menu.grid(row=row, column=1, padx=0.5, pady=0.5)
 
         to_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến Form", font=self.default_font2)
         to_form_label.grid(row=row, column=2, padx=0.5, pady=0.5)
 
-        to_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        to_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font3, state='readonly')
         to_form_menu.grid(row=row, column=3, padx=0.5, pady=0.5)
 
         to_form_2_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến Form 2", font=self.default_font2)
         to_form_2_label.grid(row=row, column=4, padx=0.5, pady=0.5)
 
-        to_form_2_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        to_form_2_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font3, state='readonly')
         to_form_2_menu.grid(row=row, column=5, padx=0.5, pady=0.5)
         
         to_form_3_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến Form 3", font=self.default_font2)
         to_form_3_label.grid(row=row, column=6, padx=0.5, pady=0.5)
 
-        to_form_3_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        to_form_3_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font3, state='readonly')
         to_form_3_menu.grid(row=row, column=7, padx=0.5, pady=0.5)
 
-        delete_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Xóa", command=lambda: self.delete_luan_chuyen_entry(row), font=self.button_font2, fg="red")
+        delete_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Xóa", command=lambda: self.delete_luan_chuyen_entry(row), font=self.button_font2, fg="#FF0000")
         delete_button.grid(row=row, column=8, padx=0.5, pady=0.5)
 
         self.luan_chuyen_entries.append((from_form_label, from_form_menu, to_form_label, to_form_menu, to_form_2_label, to_form_2_menu, to_form_3_label, to_form_3_menu, delete_button))
