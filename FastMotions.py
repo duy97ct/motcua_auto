@@ -14,6 +14,7 @@ import subprocess
 from PIL import Image, ImageTk
 from tkinter import filedialog, messagebox
 from tkinter import PhotoImage
+from tkinter import ttk
 import threading
 import os
 import sys
@@ -34,7 +35,7 @@ class App:
         self.root.geometry("700x580")
 
         
-         # Đặt biểu tượng cho ứng dụng
+        # Đặt biểu tượng cho ứng dụng
         if hasattr(sys, '_MEIPASS'):
             self.icon_path = os.path.join(sys._MEIPASS, 'icon.ico')
         else:
@@ -48,15 +49,17 @@ class App:
 
         # Thiết lập font chữ tổng thể
         self.default_font = ("Helvetica", 13)
-        self.default_font2 = ("Helvetica", 10)
+        self.default_font2 = ("Helvetica", 10, "bold")
+        self.default_font3 = ("Helvetica", 9)
         self.button_font = ("Helvetica", 13, "bold")
         self.button_font2 = ("Helvetica", 10, "bold")
         self.title_font = ("Helvetica", 16, "bold")
         self.signature_font = ("Helvetica",9)
         self.slogan_font = ("Helvetica", 12, "italic", "bold")
-        # self.youtube_font = ("YouTube Sans", 10)
-        
-        
+        self.placeholder_font = ("Helvetica", 9, "italic")
+        self.placeholder_color = "grey"
+        self.input_font = ("Helvetica", 9, "normal")
+                
         # Nút "Check Update"
         self.check_update_button = tk.Button(root, text="Check Update", background="#F0FFF0", command=self.check_for_update, width=11)
         self.check_update_button.pack(anchor='se', padx=5, pady=(5, 3))  # Giảm khoảng cách dưới nút "Check Update"
@@ -69,20 +72,11 @@ class App:
         youtube_button_width = check_update_width
         youtube_button_height = check_update_height
 
-        # Nút "YouTube"
-        # self.original_image = Image.open("logo.ico")
-        # resized_image = self.original_image.resize((20, 20), Image.LANCZOS)
-        # self.youtube_icon = ImageTk.PhotoImage(resized_image)
-
         # self.youtube_button = tk.Button(root, text="YouTube", image=self.youtube_icon, compound="left", command=self.open_youtube, fg="black", background="#FFCCCC", padx=5, pady=2)
         self.youtube_button = tk.Button(root, text="Hướng dẫn", compound="left", command=self.open_youtube, fg="black", background="#FFCCCC", width=11)
 
         self.youtube_button.pack(anchor='se', padx=5, pady=(0, 0))
-        
-        # Căn chỉnh hình ảnh logo YouTube
-        # self.youtube_button.image = self.youtube_icon  # Đảm bảo hình ảnh được giữ bởi nút
-        # self.youtube_button.config(anchor="w") 
-        
+                
         # Nhãn thông báo
         self.update_label = tk.Label(root, text="", font=("Helvetica", 12), fg="DarkBlue")
         self.update_label.pack(anchor='center', pady=0)
@@ -103,7 +97,6 @@ class App:
         self.open_button.pack(side=tk.LEFT, padx=5)
         
         
-
         # Khung chứa các checkbutton
         self.checkbox_frame = tk.Frame(root)
         self.checkbox_frame.pack(pady=10, padx=10, anchor='w')
@@ -116,14 +109,14 @@ class App:
         self.holiday_year_choice = tk.StringVar(value="Năm sau") # Thêm biến cho drop-down
         self.checkbox_quytrinh = tk.IntVar()
         
-        self.checkbox4 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Lĩnh Vực", variable=self.checkbox_dongbolv, font=self.default_font)
-        self.checkbox4.pack(anchor='w')
-        
-        self.checkbox1 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Thủ Tục Chung", variable=self.checkbox_dongboTTC, font=self.default_font)
+        self.checkbox1 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Lĩnh Vực", variable=self.checkbox_dongbolv, font=self.default_font)
         self.checkbox1.pack(anchor='w')
-
-        self.checkbox2 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Dịch Vụ Công", variable=self.checkbox_dongboDVC, font=self.default_font)
+        
+        self.checkbox2 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Thủ Tục Chung", variable=self.checkbox_dongboTTC, font=self.default_font)
         self.checkbox2.pack(anchor='w')
+
+        self.checkbox3 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Dịch Vụ Công", variable=self.checkbox_dongboDVC, font=self.default_font)
+        self.checkbox3.pack(anchor='w')
 
         # Tạo frame con để chứa Checkbutton và drop-down menu cho "Cấu hình Ngày Nghỉ Lễ"
         self.date_config_frame = tk.Frame(self.checkbox_frame)
@@ -187,7 +180,7 @@ class App:
         self.slogan_label.pack(side=tk.BOTTOM, padx=10, pady=5)
 
         # Chữ ký
-        self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông",fg="Indigo", font=self.signature_font, anchor='e')
+        self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông TP. Cần Thơ",fg="Indigo", font=self.signature_font, anchor='e')
         self.signature_label.pack(side=tk.BOTTOM, padx=10, pady=10, anchor='se', before=self.slogan_label)
         
     def open_youtube(self):
@@ -323,7 +316,7 @@ subprocess.Popen([destination])
             for index, row in df.iterrows():
                 print(f"ĐANG TỰ ĐỘNG HÓA ĐƠN VỊ {index+1} TRONG DANH SÁCH !")
                 if self.stop_flag:
-                    print("Stop flag set. Exiting loop.")
+                    print("Đang dừng quá trình tự động hóa...")
                     break
 
                 url = row['URL']
@@ -436,7 +429,7 @@ subprocess.Popen([destination])
                     for qt_index, qt_row in self.df_quytrinh.iterrows():
                         print(f"Đang cấu hình Quy trình bước {qt_index + 1} cho: {donvi}")
                         if self.stop_flag:
-                            print("Stop flag set. Exiting loop.")
+                            print("Đang dừng quá trình tự động hóa...")
                             break
                         
                         # Các dữ liệu được lấy ra từ file Excel
@@ -555,7 +548,7 @@ subprocess.Popen([destination])
                     for lc_index, lc_row in self.df_luanchuyen.iterrows():
                         print(f"Đang cấu hình Luân Chuyển bước {lc_index + 1} cho: {donvi}")
                         if self.stop_flag:
-                            print("Stop flag set. Exiting loop.")
+                            print("Đang dừng quá trình tự động hóa...")
                             break
                         
                         #Lấy dữ liệu từ sheet LuanChuyen
@@ -667,6 +660,15 @@ subprocess.Popen([destination])
                     EC.presence_of_element_located((By.ID, "luuKhongDongBo")))
                     save_tthc.click()
                      
+                #Thao tác đồng bộ lĩnh vực
+                if self.checkbox_dongbolv.get():
+                    print(f"Đang đồng bộ Lĩnh vực cho: {donvi}")
+                    driver.get(value6)
+                    dongbo_linhvuc = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "btnDongBo")))
+                    dongbo_linhvuc.click()
+                    time.sleep(7)
+                
                 #Thao tac dong bo thu tuc chung
                 if self.checkbox_dongboTTC.get():
                     print(f"Đang đồng bộ TTC cho: {donvi}")
@@ -705,16 +707,7 @@ subprocess.Popen([destination])
                     copy_button.click()
                     time.sleep(8)
 
-                #Thao tác đồng bộ lĩnh vực
-                if self.checkbox_dongbolv.get():
-                    print(f"Đang đồng bộ Lĩnh vực cho: {donvi}")
-                    driver.get(value6)
-                    dongbo_linhvuc = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.ID, "btnDongBo")))
-                    dongbo_linhvuc.click()
-                    time.sleep(7)
-                
-                       
+                                       
                 # Thao tác cấu hình nghỉ lễ
                 if self.checkbox_offnamsau_var.get():
                     
@@ -831,6 +824,7 @@ subprocess.Popen([destination])
             driver.quit()
             self.stop_button.config(state=tk.DISABLED)
             print("QUÁ TRÌNH TỰ ĐỘNG HÓA ĐÃ HOÀN TẤT !!!")
+            messagebox.showinfo("Thông báo", "Quá trình tự động hóa đã hoàn tất !@!!")
             
     def open_quy_trinh_window(self):
         
@@ -842,7 +836,8 @@ subprocess.Popen([destination])
         self.quy_trinh_data = []
         self.form_entries = []  # Khởi tạo form_entries
         self.luan_chuyen_entries = []  # Khởi tạo luan_chuyen_entries
-
+        self.placeholder_text = "Nếu là Xã/Phường thì để trống"
+        
         # Khung chứa Quy trình
         self.quy_trinh_frame = tk.LabelFrame(quy_trinh_window, text="Quy trình", font=self.default_font2)
         self.quy_trinh_frame.pack(fill="x", padx=10, pady=5)
@@ -920,8 +915,13 @@ subprocess.Popen([destination])
         self.nguoidung_menu = ttk.Combobox(self.danh_sach_form_frame, values=values, font=self.default_font2, state='normal')
         self.nguoidung_menu.grid(row=row, column=4, padx=0.5, pady=0.5)
       
-        phongban_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2, width=25)
+        phongban_entry = ttk.Entry(self.danh_sach_form_frame, font=self.placeholder_font, width=27)
+        phongban_entry.config(foreground="grey")
         phongban_entry.grid(row=row, column=5, padx=0.5, pady=0.5)
+        phongban_entry.insert(0, self.placeholder_text)
+        phongban_entry.bind("<FocusIn>", lambda event: self.clear_placeholder(event, self.placeholder_text))
+        phongban_entry.bind("<FocusOut>", lambda event: self.set_placeholder(event, self.placeholder_text))
+
         
         delete_button = tk.Button(self.danh_sach_form_frame, text="Xóa", command=lambda: self.delete_form_entry(id), font=self.button_font2, fg="red")
         delete_button.grid(row=row, column=6, padx=0.5, pady=0.5)
@@ -930,6 +930,16 @@ subprocess.Popen([destination])
         self.form_entries.append((id_label, ten_form_entry, action_menu, thoi_gian_entry, self.nguoidung_menu, phongban_entry, delete_button))
 
         self.update_luan_chuyen_menus()
+        
+    def clear_placeholder(self, event, placeholder):
+        if event.widget.get() == placeholder:
+            event.widget.delete(0, tk.END)
+            event.widget.config(foreground="black", font=self.input_font)
+
+    def set_placeholder(self, event, placeholder):
+        if event.widget.get() == "":
+            event.widget.insert(0, placeholder)
+            event.widget.config(foreground="grey", font=self.placeholder_font)
     
     def delete_form_entry(self, id):
         for entry in self.form_entries:
