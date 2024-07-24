@@ -1,11 +1,12 @@
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.common.action_chains import ActionChains
 from datetime import datetime, timedelta
 import time
 import tkinter as tk
@@ -32,7 +33,7 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title("FastMotions - One Click One Task")
-        self.root.geometry("700x580")
+        self.root.geometry("700x620")
 
         
         # Đặt biểu tượng cho ứng dụng
@@ -82,7 +83,7 @@ class App:
         self.update_label.pack(anchor='center', pady=0)
         
         # Tiêu đề
-        self.title_label = tk.Label(root, text="PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC\nHỆ THỐNG MỘT CỬA ĐIỆN TỬ", fg="#DF0029", font=self.title_font)
+        self.title_label = tk.Label(root, text="PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC\nHỆ THỐNG GIẢI QUYẾT THỦ TỤC HÀNH CHÍNH", fg="#DF0029", font=self.title_font)
         self.title_label.pack(pady=0)
         
 
@@ -104,7 +105,8 @@ class App:
         self.checkbox_dongboTTC = tk.IntVar() #đồng bộ TTC
         self.checkbox_dongboDVC = tk.IntVar() #đồng bộ DVC
         self.checkbox_dongbolv = tk.IntVar() #đồng bộ lĩnh vực
-        self.checkbox_offnamsau = tk.IntVar() #Cấu hình nghỉ lễ năm sau
+        self.checkbox_offnamsau = tk.IntVar() #Cấu hình nghỉ lễ 
+        self.checkbox_chuyentrangthai = tk.IntVar() #Chuyển trạng thái hồ sơ
         self.checkbox_copysovb = tk.IntVar() #sao chép sổ vb
         self.holiday_year_choice = tk.StringVar(value="Năm sau") # Thêm biến cho drop-down
         self.checkbox_quytrinh = tk.IntVar()
@@ -129,6 +131,12 @@ class App:
         self.year_menu = ttk.Combobox(self.date_config_frame, textvariable=self.holiday_year_choice, values=["Năm sau", "Năm nay"], font=self.default_font, state='readonly')
         self.year_menu.pack(side=tk.LEFT)
         
+        #Chuyển trạng thái hồ sơ
+        self.checkbox_chuyentrangthai_var = tk.IntVar()
+        self.checkbox_chuyentrangthai = tk.Checkbutton(self.checkbox_frame, text="Chuyển Trạng Thái Hồ Sơ", variable=self.checkbox_chuyentrangthai_var, font=self.default_font)
+        self.checkbox_chuyentrangthai.pack(anchor='w')
+
+
         # Checkbox "Sao chép Sổ Văn Bản"
         self.checkbox_copysovb_var = tk.IntVar()
         self.checkbox_copysovb = tk.Checkbutton(self.checkbox_frame, text="Sao chép Sổ Văn Bản", variable=self.checkbox_copysovb_var, font=self.default_font)
@@ -307,7 +315,8 @@ subprocess.Popen([destination])
         
         # Khởi tạo trình duyệt
         driver = webdriver.Chrome(chromedriver_path) 
-        
+        # Đặt kích thước cửa sổ trình duyệt
+        driver.set_window_size(1920, 1080)
       
         df = pd.read_excel(self.file_path)
         
@@ -325,7 +334,10 @@ subprocess.Popen([destination])
                 value1 = row['admin']
                 value2 = row['pass']
                 donvi = row['Đơn vị']
-                
+                chuyentrangthai = row['Chuyển trạng thái hồ sơ']
+                # for hs_index, hs_row in df.iterrows():
+                #     chuyentrangthai = hs_row['Chuyển trạng thái hồ sơ']
+                #     break
                                 
                 # Đường dẫn đồng bộ TTC
                 value3 = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewDanhMucThuTucChung"
@@ -342,6 +354,9 @@ subprocess.Popen([destination])
                 # Đường dẫn sao chép sổ văn bản
                 value7 = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=saoChepDanhMucSoVanBan"
 
+                #Đường dẫn Chuyển trạng thái hồ sơ
+                value8 = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=searchDanhMucHoSo"
+                
                 # Cấu hình nghỉ dương lịch
                 duonglich_from = row['Nghỉ Tết Dương lịch từ'] #Nghỉ Dương Lịch từ
                 if isinstance(duonglich_from, pd.Timestamp):
@@ -389,15 +404,15 @@ subprocess.Popen([destination])
                     quockhanh_to = quockhanh_to.strftime('%d/%m/%Y')
 
                 driver.get(url)
-                login = WebDriverWait(driver, 10).until(
+                login_id = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.ID, "_58_login")))
-                login.send_keys(value1)
+                login_id.send_keys(value1)
 
-                logout = WebDriverWait(driver, 10).until(
+                login_pwd = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.ID, "_58_password")))
-                logout.send_keys(value2)
+                login_pwd.send_keys(value2)
 
-                logout.send_keys(Keys.ENTER)
+                login_pwd.send_keys(Keys.ENTER)
                 
                 # Đảm bảo người dùng đã đính kèm file quy trình nếu checkbox được chọn
                 if self.checkbox_quytrinh_var.get() and not self.attached_file_path:
@@ -454,7 +469,7 @@ subprocess.Popen([destination])
                         
                         #chọn quy trình xử lý
                         chonqt = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rende#FF0000")))
+                        EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rendered")))
                         chonqt.click()
                         
                         gantenqt = WebDriverWait(driver, 10).until(
@@ -566,7 +581,7 @@ subprocess.Popen([destination])
                         
                         #chọn quy trình xử lý
                         chonqt_lc = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rende#FF0000")))
+                        EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rendered")))
                         chonqt_lc.click()
                         
                         gantenqt_lc = WebDriverWait(driver, 10).until(
@@ -608,7 +623,7 @@ subprocess.Popen([destination])
                     url_dvc = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewDanhMucThuTuc"
                     driver.get(url_dvc)
                         
-                    #Lấy giá trị ô B3
+                    #Lấy giá trị ô A6
                     tthc_lc = self.df_luanchuyen.iat[1, 0]  # hàng thứ 2 (A6) và cột thứ 1
                         
                     #click vào ô hiển thị tìm kiếm
@@ -646,7 +661,7 @@ subprocess.Popen([destination])
                                                
                     #chọn quy trình gắn vào TTHC
                     chonqt_tthc = WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rende#FF0000")))
+                    EC.presence_of_element_located((By.CLASS_NAME, "select2-selection__rendered")))
                     chonqt_tthc.click()
                         
                     dien_tthc = WebDriverWait(driver, 10).until(
@@ -707,7 +722,66 @@ subprocess.Popen([destination])
                     copy_button.click()
                     time.sleep(8)
 
-                                       
+                #Thao tác Chuyển trạng thái hồ sơ
+                if self.checkbox_chuyentrangthai_var.get():
+                    print(f"Đang chuyển trạng thái cho hồ sơ: {chuyentrangthai}")
+                    driver.get(value8)
+
+                    timthutuc = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "test")))
+                    timthutuc.click()
+                    # time.sleep(3)
+                    timhs = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "masearch")))
+                    timhs.send_keys(chuyentrangthai)
+                    timhs.send_keys(Keys.ENTER)
+                    edit_click = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, "//a[@class='edit-window']")))
+                    edit_click.click()
+                    # time.sleep(1)
+                    # Tìm phần tử <select> bằng ID
+                    select_element = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.NAME, "_DanhMuc_WAR_ctonegateportlet_trangThai")))
+                    
+                    select_element.click()
+                     # Tìm tất cả các tùy chọn trong danh sách
+                    options = WebDriverWait(driver, 10).until(
+                        EC.presence_of_all_elements_located((By.XPATH, "//select[@name='_DanhMuc_WAR_ctonegateportlet_trangThai']/option"))
+                    )
+
+                    # Click vào tùy chọn có văn bản "Đã kết thúc"
+                    for option in options:
+                        if option.text == "Đã kết thúc":
+                            # time.sleep(1)
+                            option.click()
+                    # Tạo đối tượng ActionChains để gửi phím
+                    actions = ActionChains(driver)
+                    
+                    # Gửi phím ESC để thực hiện thay đổi
+                    actions.send_keys(Keys.ESCAPE).perform()         
+                                    
+                     # Cuộn trang xuống sau khi chọn tùy chọn
+                    driver.execute_script("window.scrollBy(0, 800);") 
+
+                    # Tìm nút "Cập nhật" bằng ID
+                    update_button = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.ID, "btnLuu")))
+                    
+                     # Cuộn trang đến cuối để đảm bảo footer không che khuất nút
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    
+                    # Cuộn đến nút "Cập nhật" bằng JavaScript
+                    driver.execute_script("arguments[0].scrollIntoView(true);", update_button)
+                    
+                     # Kiểm tra nếu nút "Cập nhật" có thể hiển thị và tương tác
+                    if update_button.is_displayed() and update_button.is_enabled():
+                        # Sử dụng JavaScript để nhấn vào nút
+                        driver.execute_script("arguments[0].click();", update_button)
+                    else:
+                        print("Nút Cập nhật không khả dụng để nhấn")
+                    print(f"Đã chuyển trạng thái...")
+                    time.sleep(2)
+                
                 # Thao tác cấu hình nghỉ lễ
                 if self.checkbox_offnamsau_var.get():
                     
@@ -937,7 +1011,7 @@ subprocess.Popen([destination])
         if event.widget.get() == "":
             event.widget.insert(0, placeholder)
             event.widget.config(foreground="grey", font=self.placeholder_font)
-    
+                
     def delete_form_entry(self, id):
         for entry in self.form_entries:
             if entry[0].cget("text") == str(id):
@@ -1025,6 +1099,9 @@ subprocess.Popen([destination])
             thoi_gian = entry[3].get()
             nhom_nguoi_dung = entry[4].get()
             phongban = entry[5].get()
+            # Kiểm tra và loại bỏ placeholder
+            if phongban == self.placeholder_text:
+                phongban = ""  # Loại bỏ placeholder
             quy_trinh_data.append([tthc,ten_quy_trinh, bi_danh, id, ten_form, action, thoi_gian, nhom_nguoi_dung, phongban ])
 
         luan_chuyen_data = []
