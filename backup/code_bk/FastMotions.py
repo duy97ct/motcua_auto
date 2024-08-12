@@ -1,20 +1,27 @@
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.common.action_chains import ActionChains
+from webdriver_manager.chrome import ChromeDriverManager
+
 from datetime import datetime, timedelta
 import time
 import tkinter as tk
 import requests
 import subprocess
+from PIL import Image, ImageTk
 from tkinter import filedialog, messagebox
+from tkinter import PhotoImage
+from tkinter import ttk
 import threading
 import os
 import sys
+import webbrowser
 from openpyxl.styles import Font
 from tkinter import ttk
 from openpyxl import Workbook
@@ -28,10 +35,10 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title("FastMotions - One Click One Task")
-        self.root.geometry("700x570")
+        self.root.geometry("700x620")
 
         
-         # Đặt biểu tượng cho ứng dụng
+        # Đặt biểu tượng cho ứng dụng
         if hasattr(sys, '_MEIPASS'):
             self.icon_path = os.path.join(sys._MEIPASS, 'icon.ico')
         else:
@@ -45,25 +52,41 @@ class App:
 
         # Thiết lập font chữ tổng thể
         self.default_font = ("Helvetica", 13)
-        self.default_font2 = ("Helvetica", 10)
+        self.default_font2 = ("Helvetica", 10, "bold")
+        self.default_font3 = ("Helvetica", 10)
         self.button_font = ("Helvetica", 13, "bold")
         self.button_font2 = ("Helvetica", 10, "bold")
         self.title_font = ("Helvetica", 16, "bold")
         self.signature_font = ("Helvetica",9)
         self.slogan_font = ("Helvetica", 12, "italic", "bold")
-        
+        self.placeholder_font = ("Helvetica", 9, "italic")
+        self.placeholder_color = "grey"
+        self.input_font = ("Helvetica", 9, "normal")
+                
+        # Nút "Check Update"
+        self.check_update_button = tk.Button(root, text="Check Update", background="#F0FFF0", command=self.check_for_update, width=11)
+        self.check_update_button.pack(anchor='se', padx=5, pady=(5, 3))  # Giảm khoảng cách dưới nút "Check Update"
 
-        # Tạo nút "Check Update"
-        self.check_update_button = tk.Button(root, text="Check Update", command=self.check_for_update)
-        self.check_update_button.pack(anchor='se', padx=5, pady=5)
-        
-        # Tạo nhãn thông báo
-        self.update_label = tk.Label(root, text="", font=("Helvetica", 12), fg="blue")
-        self.update_label.pack(anchor='center', pady=2)
+        # Lấy kích thước của nút "Check Update"
+        check_update_width = self.check_update_button.winfo_reqwidth()
+        check_update_height = self.check_update_button.winfo_reqheight()
+
+        # Tính toán kích thước nút YouTube dựa trên kích thước của nút "Check Update"
+        youtube_button_width = check_update_width
+        youtube_button_height = check_update_height
+
+        # self.youtube_button = tk.Button(root, text="YouTube", image=self.youtube_icon, compound="left", command=self.open_youtube, fg="black", background="#FFCCCC", padx=5, pady=2)
+        self.youtube_button = tk.Button(root, text="Hướng dẫn", compound="left", command=self.open_youtube, fg="black", background="#FFCCCC", width=11)
+
+        self.youtube_button.pack(anchor='se', padx=5, pady=(0, 0))
+                
+        # Nhãn thông báo
+        self.update_label = tk.Label(root, text="", font=("Helvetica", 12), fg="DarkBlue")
+        self.update_label.pack(anchor='center', pady=0)
         
         # Tiêu đề
-        self.title_label = tk.Label(root, text="PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC\nHỆ THỐNG MỘT CỬA ĐIỆN TỬ", fg="red", font=self.title_font)
-        self.title_label.pack(pady=10)
+        self.title_label = tk.Label(root, text="PHẦN MỀM TỰ ĐỘNG HÓA THAO TÁC\nHỆ THỐNG GIẢI QUYẾT THỦ TỤC HÀNH CHÍNH", fg="#DF0029", font=self.title_font)
+        self.title_label.pack(pady=0)
         
 
         # Khung chứa phần chọn file
@@ -77,7 +100,6 @@ class App:
         self.open_button.pack(side=tk.LEFT, padx=5)
         
         
-
         # Khung chứa các checkbutton
         self.checkbox_frame = tk.Frame(root)
         self.checkbox_frame.pack(pady=10, padx=10, anchor='w')
@@ -85,19 +107,20 @@ class App:
         self.checkbox_dongboTTC = tk.IntVar() #đồng bộ TTC
         self.checkbox_dongboDVC = tk.IntVar() #đồng bộ DVC
         self.checkbox_dongbolv = tk.IntVar() #đồng bộ lĩnh vực
-        self.checkbox_offnamsau = tk.IntVar() #Cấu hình nghỉ lễ năm sau
+        self.checkbox_offnamsau = tk.IntVar() #Cấu hình nghỉ lễ 
+        self.checkbox_chuyentrangthai = tk.IntVar() #Chuyển trạng thái hồ sơ
         self.checkbox_copysovb = tk.IntVar() #sao chép sổ vb
         self.holiday_year_choice = tk.StringVar(value="Năm sau") # Thêm biến cho drop-down
         self.checkbox_quytrinh = tk.IntVar()
         
-        self.checkbox4 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Lĩnh Vực", variable=self.checkbox_dongbolv, font=self.default_font)
-        self.checkbox4.pack(anchor='w')
-        
-        self.checkbox1 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Thủ Tục Chung", variable=self.checkbox_dongboTTC, font=self.default_font)
+        self.checkbox1 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Lĩnh Vực", variable=self.checkbox_dongbolv, font=self.default_font)
         self.checkbox1.pack(anchor='w')
-
-        self.checkbox2 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Dịch Vụ Công", variable=self.checkbox_dongboDVC, font=self.default_font)
+        
+        self.checkbox2 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Thủ Tục Chung", variable=self.checkbox_dongboTTC, font=self.default_font)
         self.checkbox2.pack(anchor='w')
+
+        self.checkbox3 = tk.Checkbutton(self.checkbox_frame, text="Đồng bộ Dịch Vụ Công", variable=self.checkbox_dongboDVC, font=self.default_font)
+        self.checkbox3.pack(anchor='w')
 
         # Tạo frame con để chứa Checkbutton và drop-down menu cho "Cấu hình Ngày Nghỉ Lễ"
         self.date_config_frame = tk.Frame(self.checkbox_frame)
@@ -110,6 +133,12 @@ class App:
         self.year_menu = ttk.Combobox(self.date_config_frame, textvariable=self.holiday_year_choice, values=["Năm sau", "Năm nay"], font=self.default_font, state='readonly')
         self.year_menu.pack(side=tk.LEFT)
         
+        #Chuyển trạng thái hồ sơ
+        self.checkbox_chuyentrangthai_var = tk.IntVar()
+        self.checkbox_chuyentrangthai = tk.Checkbutton(self.checkbox_frame, text="Chuyển Trạng Thái Hồ Sơ", variable=self.checkbox_chuyentrangthai_var, font=self.default_font)
+        self.checkbox_chuyentrangthai.pack(anchor='w')
+
+
         # Checkbox "Sao chép Sổ Văn Bản"
         self.checkbox_copysovb_var = tk.IntVar()
         self.checkbox_copysovb = tk.Checkbutton(self.checkbox_frame, text="Sao chép Sổ Văn Bản", variable=self.checkbox_copysovb_var, font=self.default_font)
@@ -153,16 +182,19 @@ class App:
         self.start_button = tk.Button(self.control_frame, text="START", command=self.start_thread, font=self.button_font, fg="DarkGreen")
         self.start_button.grid(row=0, column=0, padx=5)
 
-        self.stop_button = tk.Button(self.control_frame, text="STOP", command=self.stop_automation, state=tk.DISABLED, font=self.button_font, fg="red")
+        self.stop_button = tk.Button(self.control_frame, text="STOP", command=self.stop_automation, state=tk.DISABLED, font=self.button_font, fg="#FF0000")
         self.stop_button.grid(row=0, column=1, padx=5)    
         
         # Slogan
-        self.slogan_label = tk.Label(root, text="CÔNG VIỆC LÀ CỦA BẠN - CÒN THAO TÁC LÀ CỦA CHÚNG TÔI !", fg="DarkBlue", font=self.slogan_font, anchor='center')
+        self.slogan_label = tk.Label(root, text="CÔNG VIỆC LÀ CỦA BẠN - THAO TÁC LÀ CỦA CHÚNG TÔI !", fg="DarkBlue", font=self.slogan_font, anchor='center')
         self.slogan_label.pack(side=tk.BOTTOM, padx=10, pady=5)
 
         # Chữ ký
-        self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông",fg="Indigo", font=self.signature_font, anchor='e')
+        self.signature_label = tk.Label(root, text="Phòng Ứng dụng CNTT - Trung tâm Công nghệ thông tin và Truyền thông TP. Cần Thơ",fg="Indigo", font=self.signature_font, anchor='e')
         self.signature_label.pack(side=tk.BOTTOM, padx=10, pady=10, anchor='se', before=self.slogan_label)
+        
+    def open_youtube(self):
+        webbrowser.open_new_tab("https://www.youtube.com/@FastMotions97")
     
     def read_quy_trinh_file(self):
         try:
@@ -173,8 +205,7 @@ class App:
         except Exception as e:
             messagebox.showerror("Lỗi", f"Lỗi khi đọc file quy trình: {str(e)}")
             self.quy_trinh_data = None
-        
-    
+            
     def check_for_update(self):
         # URL của tệp cập nhật trên GitHub
         repo_owner = "duy97ct"
@@ -220,7 +251,6 @@ class App:
             messagebox.showerror("Lỗi", "Không thể tải tệp cập nhật. Vui lòng thử lại sau.")
             self.update_label.config(text="")
 
-
     def restart_app(self, temp_update_path):
         # Tạo một kịch bản Python để cập nhật ứng dụng
             update_script_content = f'''
@@ -259,7 +289,6 @@ subprocess.Popen([destination])
             subprocess.Popen([sys.executable, update_script_path])
     # Xóa file kịch bản cập nhật sau khi hoàn tất
             os.remove(update_script_path)
-
     
     def open_file(self):
         self.file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
@@ -277,30 +306,31 @@ subprocess.Popen([destination])
         self.stop_flag = True
 
     def start_automation(self):
-    
         
-        # Xác định đường dẫn của ChromeDriver
-        if getattr(sys, 'frozen', False):
-            chromedriver_path = os.path.join(sys._MEIPASS, "chromedriver.exe")
-        else:
-            chromedriver_path = "chromedriver.exe"
+        # # Xác định đường dẫn của ChromeDriver
+        # if getattr(sys, 'frozen', False):
+        #     chromedriver_path = os.path.join(sys._MEIPASS, "chromedriver.exe")
+        # else:
+        #     chromedriver_path = "chromedriver.exe"
 
         
         # # Khởi tạo trình duyệt
-        driver = webdriver.Chrome(chromedriver_path) #THƯ MỤC GỐC
-        
-        # Khởi tạo ChromeOptions
-        # chrome_options = webdriver.ChromeOptions()
+        # driver = webdriver.Chrome(chromedriver_path) 
 
-        # Vô hiệu hóa chế độ ẩn danh
-        # chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        if getattr(sys, 'frozen', False):
+            chromedriver_path = os.path.join(sys._MEIPASS, "chromedriver.exe")
+        else:
+            chromedriver_path = ChromeDriverManager().install()  # Sử dụng WebDriver Manager
 
-        # Đường dẫn đến thư mục lưu trữ dữ liệu cá nhân của Chrome
-        # chrome_options.add_argument("user-data-dir=C:\\chromedriver")
+        # Khởi tạo dịch vụ Chrome
+        service = Service(chromedriver_path)
 
-        # Khởi tạo trình duyệt với ChromeOptions và đường dẫn của ChromeDriver
-        # driver = webdriver.Chrome(executable_path=chromedriver_path, options=chrome_options)
-        
+        # Khởi tạo trình duyệt
+        driver = webdriver.Chrome(service=service)
+
+        # Đặt kích thước cửa sổ trình duyệt
+        driver.set_window_size(1920, 1080)
+      
         df = pd.read_excel(self.file_path)
         
         try:
@@ -308,7 +338,7 @@ subprocess.Popen([destination])
             for index, row in df.iterrows():
                 print(f"ĐANG TỰ ĐỘNG HÓA ĐƠN VỊ {index+1} TRONG DANH SÁCH !")
                 if self.stop_flag:
-                    print("Stop flag set. Exiting loop.")
+                    print("Đang dừng quá trình tự động hóa...")
                     break
 
                 url = row['URL']
@@ -316,7 +346,12 @@ subprocess.Popen([destination])
                 now_year = datetime.now().year
                 value1 = row['admin']
                 value2 = row['pass']
-
+                donvi = row['Đơn vị']
+                chuyentrangthai = row['Chuyển trạng thái hồ sơ']
+                # for hs_index, hs_row in df.iterrows():
+                #     chuyentrangthai = hs_row['Chuyển trạng thái hồ sơ']
+                #     break
+                                
                 # Đường dẫn đồng bộ TTC
                 value3 = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewDanhMucThuTucChung"
                 
@@ -332,62 +367,65 @@ subprocess.Popen([destination])
                 # Đường dẫn sao chép sổ văn bản
                 value7 = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=saoChepDanhMucSoVanBan"
 
+                #Đường dẫn Chuyển trạng thái hồ sơ
+                value8 = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=searchDanhMucHoSo"
+                
                 # Cấu hình nghỉ dương lịch
-                duonglich_from = row['off_duonglich_from'] #Nghỉ Dương Lịch từ
+                duonglich_from = row['Nghỉ Tết Dương lịch từ'] #Nghỉ Dương Lịch từ
                 if isinstance(duonglich_from, pd.Timestamp):
                     duonglich_from = duonglich_from.strftime('%d/%m/%Y')
                 
-                duonglich_to = row['off_duonglich_to'] #Nghỉ Dương Lịch đến
+                duonglich_to = row['Nghỉ Tết Dương lịch đến'] #Nghỉ Dương Lịch đến
                 if isinstance(duonglich_to, pd.Timestamp):
                     duonglich_to = duonglich_to.strftime('%d/%m/%Y')
                 
                 
                 # Cấu hình nghỉ nguyên đán
-                nguyendan_from = row['off_nguyendan_from'] #Nghỉ Tết Nguyên Đán từ
+                nguyendan_from = row['Nghỉ Tết Nguyên đán từ'] #Nghỉ Tết Nguyên Đán từ
                 if isinstance(nguyendan_from, pd.Timestamp):
                     nguyendan_from = nguyendan_from.strftime('%d/%m/%Y')
                 
-                nguyendan_to = row['off_nguyendan_to'] #Nghỉ Tết Nguyên Đán đến
+                nguyendan_to = row['Nghỉ Tết Nguyên đán đến'] #Nghỉ Tết Nguyên Đán đến
                 if isinstance(nguyendan_to, pd.Timestamp):
                     nguyendan_to = nguyendan_to.strftime('%d/%m/%Y')
 
                 # Cấu hình nghỉ Giỗ Tổ Hùng Vương
-                gioto_from = row['off_gioto_from'] #nghỉ Giỗ Tổ Hùng Vương từ
+                gioto_from = row['Nghỉ Giỗ tổ từ'] #nghỉ Giỗ Tổ Hùng Vương từ
                 if isinstance(gioto_from, pd.Timestamp):
                     gioto_from = gioto_from.strftime('%d/%m/%Y')
                 
-                gioto_to = row['off_gioto_to'] #nghỉ Giỗ Tổ Hùng Vương đến
+                gioto_to = row['Nghỉ Giổ tổ đến'] #nghỉ Giỗ Tổ Hùng Vương đến
                 if isinstance(gioto_to, pd.Timestamp):
                     gioto_to = gioto_to.strftime('%d/%m/%Y')
 
                 #Cấu hình nghỉ 30/4 và 1/5                                                                                       
-                giaiphong_from = row['off_30/4_va_1/5_from'] #nghỉ 30/4 và 1/5 từ
+                giaiphong_from = row['Nghỉ 30/4 và 1/5 từ'] #nghỉ 30/4 và 1/5 từ
                 if isinstance(giaiphong_from, pd.Timestamp):
                     giaiphong_from = giaiphong_from.strftime('%d/%m/%Y')
                 
-                giaiphong_to = row['off_30/4_va_1/5_to'] #nghỉ 30/4 và 1/5 đến
+                giaiphong_to = row['Nghỉ 30/4 và 1/5 đến'] #nghỉ 30/4 và 1/5 đến
                 if isinstance(giaiphong_to, pd.Timestamp):
                     giaiphong_to = giaiphong_to.strftime('%d/%m/%Y')
 
                 #Cấu hình Nghỉ lễ 2/9
-                quockhanh_from = row['off_2/9_from'] #nghỉ Quốc khánh từ
+                quockhanh_from = row['Nghỉ 2/9 từ'] #nghỉ Quốc khánh từ
                 if isinstance(quockhanh_from, pd.Timestamp):
                     quockhanh_from = quockhanh_from.strftime('%d/%m/%Y')
                 
-                quockhanh_to = row['off_2/9_to'] #nghỉ Quốc khánh đến
+                quockhanh_to = row['Nghỉ 2/9 đến'] #nghỉ Quốc khánh đến
                 if isinstance(quockhanh_to, pd.Timestamp):
                     quockhanh_to = quockhanh_to.strftime('%d/%m/%Y')
 
                 driver.get(url)
-                login = WebDriverWait(driver, 10).until(
+                login_id = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.ID, "_58_login")))
-                login.send_keys(value1)
+                login_id.send_keys(value1)
 
-                logout = WebDriverWait(driver, 10).until(
+                login_pwd = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.ID, "_58_password")))
-                logout.send_keys(value2)
+                login_pwd.send_keys(value2)
 
-                logout.send_keys(Keys.ENTER)
+                login_pwd.send_keys(Keys.ENTER)
                 
                 # Đảm bảo người dùng đã đính kèm file quy trình nếu checkbox được chọn
                 if self.checkbox_quytrinh_var.get() and not self.attached_file_path:
@@ -417,9 +455,9 @@ subprocess.Popen([destination])
                     bidanhsave.click()
     
                     for qt_index, qt_row in self.df_quytrinh.iterrows():
-                        print(f"Đang cấu hình Quy trình bước: {qt_index + 1}")
+                        print(f"Đang cấu hình Quy trình bước {qt_index + 1} cho: {donvi}")
                         if self.stop_flag:
-                            print("Stop flag set. Exiting loop.")
+                            print("Đang dừng quá trình tự động hóa...")
                             break
                         
                         # Các dữ liệu được lấy ra từ file Excel
@@ -427,8 +465,8 @@ subprocess.Popen([destination])
                         action_value = qt_row['Mã Action']
                         time_value = qt_row['Thời gian']
                         user_group_value = qt_row['Nhóm người dùng']
-                        # phongban_value = qt_row['Phòng ban']
-                        
+                        phongban_value = qt_row['Phòng ban']
+
                         #Cấu hình quy trình
                         #Danh sách Form
                         add_qt_url = url +"/group/guest/quan-tri-quy-trinh?p_p_id=quanlyquytrinh_WAR_ctonegatecoreportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_quanlyquytrinh_WAR_ctonegatecoreportlet_tabs1=Quản+lý+form&_quanlyquytrinh_WAR_ctonegatecoreportlet_jspPage=%2Fhtml%2Fqlquytrinh%2Fqlqtform%2Fqlqtform_add.jsp"
@@ -478,14 +516,53 @@ subprocess.Popen([destination])
                             # Lấy văn bản trong thẻ td đầu tiên
                             role_name = row.find_element(By.TAG_NAME, "td").text.strip()
                             # Kiểm tra xem role_name có chứa giá trị bạn muốn không
-                            if user_group_value in role_name:
+                            if user_group_value.lower() in role_name.lower(): #chuyển dữ liệu thành chữ thường và so khớp
                                 # Tìm checkbox
                                 checkbox = row.find_element(By.CLASS_NAME, "roleInput")
                                 # Kiểm tra nếu không được chọn thì kích vào nó
                                 if not checkbox.is_selected():
                                     checkbox.click()
-                                break  # Dừng vòng lặp sau khi đã tìm thấy và kích vào checkbox  
+                                break  # Dừng vòng lặp sau khi đã tìm thấy và kích vào checkbox 
+                                time.sleep(1)
+                        
+                        
+                        # # Tìm dòng có chứa văn bản từ cột "Đơn vị" trong file DATA và check vào checkbox bên cạnh                        
+                        table_pb = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".rights-department-detail .tableqtquyen")))
 
+                        # Tìm tất cả các dòng trong bảng
+                        rows_pb = table_pb.find_elements(By.CLASS_NAME, "rowChiTiet")
+
+                        # Duyệt qua từng dòng và chọn checkbox dựa trên nội dung của cột đầu tiên
+                        for row in rows_pb:
+                            # Lấy tất cả các thẻ td trong dòng hiện tại
+                            tds = row.find_elements(By.TAG_NAME, "td")
+                            
+                            # Kiểm tra số lượng thẻ td có lớn hơn 1 để lấy giá trị dòng 2
+                            if len(tds) > 1:
+                                td_pb = tds[0].text.strip()
+                                                               
+                                # Kiểm tra nếu phongban_value là một chuỗi và không phải là NaN
+                                if isinstance(phongban_value, str) and phongban_value.strip():
+                                    if phongban_value.lower() in td_pb.lower():
+                                        # Tìm checkbox
+                                        checkbox = tds[1].find_element(By.TAG_NAME, "input")
+                                        # print(f"Tìm thấy giá trị khớp: {td_pb}")
+                                        
+                                        if not checkbox.is_selected(): # Kiểm tra nếu không được chọn thì kích vào nó
+                                            checkbox.click()
+                                            print("Checked")
+                                        break  # Dừng vòng lặp sau khi đã tìm thấy và kích vào checkbox
+                                else:  # Nếu phongban_value không có dữ liệu, sử dụng donvi
+                                    if donvi.lower() in td_pb.lower():
+                                        # Tìm checkbox
+                                        checkbox = tds[1].find_element(By.TAG_NAME, "input")
+                                        # print(f"Tìm thấy giá trị khớp: {td_pb}")
+                                        
+                                        if not checkbox.is_selected(): # Kiểm tra nếu không được chọn thì kích vào nó
+                                            checkbox.click()
+                                            print("Checked")
+                                        break  # Dừng vòng lặp sau khi đã tìm thấy và kích vào checkbox
+                                
                         save = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_quanlyquytrinh_WAR_ctonegatecoreportlet_add")))
                         save.click()
@@ -497,9 +574,9 @@ subprocess.Popen([destination])
                     
                     # Thao tác với dữ liệu từ sheet "LuanChuyen"                    
                     for lc_index, lc_row in self.df_luanchuyen.iterrows():
-                        print(f"Đang cấu hình Luân Chuyển bước: {lc_index + 1}")
+                        print(f"Đang cấu hình Luân Chuyển bước {lc_index + 1} cho: {donvi}")
                         if self.stop_flag:
-                            print("Stop flag set. Exiting loop.")
+                            print("Đang dừng quá trình tự động hóa...")
                             break
                         
                         #Lấy dữ liệu từ sheet LuanChuyen
@@ -559,7 +636,7 @@ subprocess.Popen([destination])
                     url_dvc = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewDanhMucThuTuc"
                     driver.get(url_dvc)
                         
-                    #Lấy giá trị ô B3
+                    #Lấy giá trị ô A6
                     tthc_lc = self.df_luanchuyen.iat[1, 0]  # hàng thứ 2 (A6) và cột thứ 1
                         
                     #click vào ô hiển thị tìm kiếm
@@ -573,13 +650,13 @@ subprocess.Popen([destination])
                     ma_click.send_keys(tthc_lc)
                         
                     #click vào nút tìm kiếm
+                    # time.sleep(2)
+                   
                     search_click = WebDriverWait(driver, 10).until(
                     EC.element_to_be_clickable((By.XPATH, "//button[@name='btnSearch' and @value='search']")))
                     search_click.click()
-                    
-                    # url_update_dvc = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-2&p_p_col_count=1&_DanhMuc_WAR_ctonegateportlet_token=b95873f80bd19a49a85e927682122e1e&_DanhMuc_WAR_ctonegateportlet_thuTucId=145108&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewEditDanhMucThuTuc"
-                    # driver.get(url_update_dvc)    
-
+                    # time.sleep(2)
+                       
                     table1 = driver.find_element(By.CLASS_NAME, "table-data")
                     rows = table1.find_elements(By.TAG_NAME, "tr")
 
@@ -611,9 +688,18 @@ subprocess.Popen([destination])
                     EC.presence_of_element_located((By.ID, "luuKhongDongBo")))
                     save_tthc.click()
                      
+                #Thao tác đồng bộ lĩnh vực
+                if self.checkbox_dongbolv.get():
+                    print(f"Đang đồng bộ Lĩnh vực cho: {donvi}")
+                    driver.get(value6)
+                    dongbo_linhvuc = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "btnDongBo")))
+                    dongbo_linhvuc.click()
+                    time.sleep(7)
+                
                 #Thao tac dong bo thu tuc chung
                 if self.checkbox_dongboTTC.get():
-                    print(f"Đang đồng bộ TTC cho hàng {index+1}")
+                    print(f"Đang đồng bộ TTC cho: {donvi}")
                     driver.get(value3)
                     dongbo_ttc = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "btnDongBo")))
@@ -622,7 +708,7 @@ subprocess.Popen([destination])
                 
                 #Thao tac dong bo dich vu cong
                 if self.checkbox_dongboDVC.get():
-                    print(f"Đang đồng bộ DVC cho hàng {index+1}")
+                    print(f"Đang đồng bộ DVC cho: {donvi}")
                     driver.get(value4)
                     dongbo_dvc = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "btnDongBo")))
@@ -631,11 +717,11 @@ subprocess.Popen([destination])
                     sync_button = WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.XPATH, '//a[@onclick="dongBoThuTuc();"]')))
                     sync_button.click()
-                    time.sleep(33)
+                    time.sleep(45)
                     
                 #Thao tac sao chép sổ văn bản
                 if self.checkbox_copysovb_var.get():
-                    print(f"Đang copy sổ văn bản cho hàng {index+1}")
+                    print(f"Đang copy sổ văn bản cho: {donvi}")
                     driver.get(value7)
                     copy_sovb_from = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.ID, "_DanhMuc_WAR_ctonegateportlet_namCopy")))
@@ -649,21 +735,71 @@ subprocess.Popen([destination])
                     copy_button.click()
                     time.sleep(8)
 
-                #Thao tác đồng bộ lĩnh vực
-                if self.checkbox_dongbolv.get():
-                    print(f"Đang đồng bộ Lĩnh vực cho hàng {index+1}")
-                    driver.get(value6)
-                    dongbo_linhvuc = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.ID, "btnDongBo")))
-                    dongbo_linhvuc.click()
-                    time.sleep(7)
+                #Thao tác Chuyển trạng thái hồ sơ
+                if self.checkbox_chuyentrangthai_var.get():
+                    print(f"Đang chuyển trạng thái cho hồ sơ: {chuyentrangthai}")
+                    driver.get(value8)
+
+                    timthutuc = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "test")))
+                    timthutuc.click()
+                    # time.sleep(3)
+                    timhs = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, "masearch")))
+                    timhs.send_keys(chuyentrangthai)
+                    timhs.send_keys(Keys.ENTER)
+                    edit_click = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, "//a[@class='edit-window']")))
+                    edit_click.click()
+                    # time.sleep(1)
+                    # Tìm phần tử <select> bằng ID
+                    select_element = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.NAME, "_DanhMuc_WAR_ctonegateportlet_trangThai")))
+                    
+                    select_element.click()
+                     # Tìm tất cả các tùy chọn trong danh sách
+                    options = WebDriverWait(driver, 10).until(
+                        EC.presence_of_all_elements_located((By.XPATH, "//select[@name='_DanhMuc_WAR_ctonegateportlet_trangThai']/option"))
+                    )
+
+                    # Click vào tùy chọn có văn bản "Đã kết thúc"
+                    for option in options:
+                        if option.text == "Đã kết thúc":
+                            # time.sleep(1)
+                            option.click()
+                    # Tạo đối tượng ActionChains để gửi phím
+                    actions = ActionChains(driver)
+                    
+                    # Gửi phím ESC để thực hiện thay đổi
+                    actions.send_keys(Keys.ESCAPE).perform()         
+                                    
+                     # Cuộn trang xuống sau khi chọn tùy chọn
+                    driver.execute_script("window.scrollBy(0, 800);") 
+
+                    # Tìm nút "Cập nhật" bằng ID
+                    update_button = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.ID, "btnLuu")))
+                    
+                     # Cuộn trang đến cuối để đảm bảo footer không che khuất nút
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    
+                    # Cuộn đến nút "Cập nhật" bằng JavaScript
+                    driver.execute_script("arguments[0].scrollIntoView(true);", update_button)
+                    
+                     # Kiểm tra nếu nút "Cập nhật" có thể hiển thị và tương tác
+                    if update_button.is_displayed() and update_button.is_enabled():
+                        # Sử dụng JavaScript để nhấn vào nút
+                        driver.execute_script("arguments[0].click();", update_button)
+                    else:
+                        print("Nút Cập nhật không khả dụng để nhấn")
+                    print(f"Đã chuyển trạng thái...")
+                    time.sleep(1)
                 
-                       
                 # Thao tác cấu hình nghỉ lễ
                 if self.checkbox_offnamsau_var.get():
                     
                     holiday_year = next_year if self.holiday_year_choice.get() == "Năm sau" else now_year
-                    print(f"Đang cấu hình Ngày Nghỉ lễ cho hàng {index+1}")
+                    print(f"Đang cấu hình Ngày Nghỉ lễ cho: {donvi}")
                     driver.get(value5)
                     
                     # Cấu hình nghỉ Tết dương lịch
@@ -684,7 +820,7 @@ subprocess.Popen([destination])
                     
                     thoigian_duonglich_to.send_keys(Keys.ENTER)
                     thoigian_duonglich_to.send_keys(Keys.ENTER)
-                    time.sleep(3)
+                    # time.sleep(1)
 
                     # Cấu hình nghỉ Tết nguyên đáng
                     driver.get(value5)
@@ -704,7 +840,7 @@ subprocess.Popen([destination])
                     
                     thoigian_nguyendan_to.send_keys(Keys.ENTER)
                     thoigian_nguyendan_to.send_keys(Keys.ENTER)
-                    time.sleep(3)
+                    # time.sleep(3)
 
 
                     #Cấu hình Nghỉ Giỗ Tổ Hùng Vương
@@ -725,7 +861,7 @@ subprocess.Popen([destination])
                     
                     thoigian_gioto_to.send_keys(Keys.ENTER)
                     thoigian_gioto_to.send_keys(Keys.ENTER)
-                    time.sleep(3)
+                    # time.sleep(3)
 
                     #Cấu hình nghỉ 30/4 và 1/5
                     driver.get(value5)
@@ -745,7 +881,7 @@ subprocess.Popen([destination])
                     
                     thoigian_giaiphong_to.send_keys(Keys.ENTER)
                     thoigian_giaiphong_to.send_keys(Keys.ENTER)
-                    time.sleep(3)
+                    # time.sleep(3)
 
                     #Cấu hình nghỉ Lễ Quốc khánh 2/9
                     driver.get(value5)
@@ -765,7 +901,7 @@ subprocess.Popen([destination])
                     
                     thoigian_quockhanh_to.send_keys(Keys.ENTER)
                     thoigian_quockhanh_to.send_keys(Keys.ENTER)
-                    time.sleep(3)
+                    # time.sleep(3)
 
                 logout_url = urljoin(driver.current_url, "/c/portal/logout")
                 driver.get(logout_url)
@@ -774,7 +910,8 @@ subprocess.Popen([destination])
         finally:
             driver.quit()
             self.stop_button.config(state=tk.DISABLED)
-            print("ĐÃ HOÀN TẤT !!!")
+            print("QUÁ TRÌNH TỰ ĐỘNG HÓA ĐÃ HOÀN TẤT !!!")
+            messagebox.showinfo("Thông báo", "Quá trình tự động hóa đã hoàn tất !@!!")
             
     def open_quy_trinh_window(self):
         
@@ -786,21 +923,22 @@ subprocess.Popen([destination])
         self.quy_trinh_data = []
         self.form_entries = []  # Khởi tạo form_entries
         self.luan_chuyen_entries = []  # Khởi tạo luan_chuyen_entries
-
+        self.placeholder_text = "Nếu là Xã/Phường thì để trống"
+        
         # Khung chứa Quy trình
         self.quy_trinh_frame = tk.LabelFrame(quy_trinh_window, text="Quy trình", font=self.default_font2)
         self.quy_trinh_frame.pack(fill="x", padx=10, pady=5)
 
         tk.Label(self.quy_trinh_frame, text="Tên quy trình:", font=self.default_font2).grid(row=0, column=0, padx=0, pady=0, sticky='w')
-        self.ten_quy_trinh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=50)
+        self.ten_quy_trinh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font3, width=50)
         self.ten_quy_trinh_entry.grid(row=0, column=1, padx=0.5, pady=0.5)
 
         tk.Label(self.quy_trinh_frame, text="Bí danh quy trình:", font=self.default_font2).grid(row=1, column=0, padx=0, pady=0, sticky='w')
-        self.bi_danh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=50)
+        self.bi_danh_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font3, width=50)
         self.bi_danh_entry.grid(row=1, column=1, padx=0.5, pady=0.5)
         
         tk.Label(self.quy_trinh_frame, text="Gắn vào TTHC:", font=self.default_font2).grid(row=0, column=3, padx=5, pady=5, sticky='w')
-        self.tthc_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font2, width=50)
+        self.tthc_entry = tk.Entry(self.quy_trinh_frame, font=self.default_font3, width=50)
         self.tthc_entry.grid(row=0, column=4, padx=0.5, pady=0.5)
         
         # Khung chứa Danh sách Form
@@ -815,12 +953,12 @@ subprocess.Popen([destination])
 
 
         self.add_form_entry()  # Thêm form entry đầu tiên
-
-        self.add_form_button = tk.Button(self.danh_sach_form_frame, text="Thêm 1 hàng", command=self.add_form_entry, font=self.button_font2, fg="purple")
-        self.add_form_button.grid(row=999, column=0, columnspan=5, pady=5)
+        
+        self.add_form_button = tk.Button(self.danh_sach_form_frame, text="Thêm 1 hàng", command=self.add_form_entry, font=self.button_font2, fg="#C71585")
+        self.add_form_button.grid(row=999, column=0, columnspan=10, pady=5, padx=10)
 
         # Nút "Xong"
-        self.done_button = tk.Button(self.danh_sach_form_frame, text="Xong", command=self.save_form_state, font=self.button_font2, fg="green")
+        self.done_button = tk.Button(self.danh_sach_form_frame, text="Xong", command=self.save_form_state, font=self.button_font2, fg="#004400")
         self.done_button.grid(row=999, column=4, columnspan=5, pady=5)
 
         # Khung chứa Danh sách Luân chuyển
@@ -829,17 +967,14 @@ subprocess.Popen([destination])
 
         self.add_luan_chuyen_entry()  # Thêm luân chuyển entry đầu tiên
 
-        self.add_luan_chuyen_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Thêm 1 hàng", command=self.add_luan_chuyen_entry, font=self.button_font2, fg="purple")
-        self.add_luan_chuyen_button.grid(row=999, column=0, columnspan=3, pady=5)
+        self.add_luan_chuyen_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Thêm 1 hàng", command=self.add_luan_chuyen_entry, font=self.button_font2, fg="#C71585")
+        self.add_luan_chuyen_button.grid(row=999, column=0, columnspan=8, pady=5)
 
         # Nút tải về
-        self.download_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Tải về", command=self.export_to_excel, font=self.button_font2, fg="blue")
+        self.download_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Tải về", command=self.export_to_excel, font=self.button_font2, fg="DarkBlue")
         # self.download_button.pack(pady=5) # nút Tải về nằm rời bên dưới
-        self.download_button.grid(row=999, column=3, columnspan=5, pady=5)
+        self.download_button.grid(row=999, column=5, columnspan=6, pady=5)
         
-        
-
-
     def add_form_entry(self, id=None):
         if id is None:
             id = len(self.form_entries) + 1
@@ -849,36 +984,47 @@ subprocess.Popen([destination])
         id_label = tk.Label(self.danh_sach_form_frame, text=str(id), font=self.default_font2)
         id_label.grid(row=row, column=0, padx=0.5, pady=0.5)
 
-        ten_form_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2, width=35)
+        ten_form_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font3, width=35)
         ten_form_entry.grid(row=row, column=1, padx=0.5, pady=0.5)
 
-        action_menu = ttk.Combobox(self.danh_sach_form_frame, values=["Thêm mới", "Chuyển xử lý", "Trình phê duyệt", "Chuyển ban hành", "Chuyển trả kết quả"], font=self.default_font2, state='readonly')
+        action_menu = ttk.Combobox(self.danh_sach_form_frame, values=["Thêm mới", "Chuyển xử lý", "Trình phê duyệt", "Chuyển ban hành", "Chuyển trả kết quả"], font=self.default_font3, state='readonly')
         action_menu.grid(row=row, column=2, padx=0.5, pady=0.5)
 
-        thoi_gian_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
+        thoi_gian_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font3)
         thoi_gian_entry.grid(row=row, column=3, padx=0.5, pady=0.5)
-
-        # nhom_nguoi_dung_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2)
-        # nhom_nguoi_dung_entry.grid(row=row, column=4, padx=0.5, pady=0.5)
         
         # Danh sách các giá trị với một dòng trống ở cuối
         values = ["Một cửa", "Một cửa chứng thực", "Chuyên viên", "Cán bộ", "Công chức", "Chuyên viên thụ lý hồ sơ", "Tư pháp - Hộ tịch", "Lãnh đạo phòng", "Lãnh đạo đơn vị", "Văn thư"]
         
-        self.nguoidung_menu = ttk.Combobox(self.danh_sach_form_frame, values=values, font=self.default_font2, state='normal')
+        self.nguoidung_menu = ttk.Combobox(self.danh_sach_form_frame, values=values, font=self.default_font3, state='normal')
         self.nguoidung_menu.grid(row=row, column=4, padx=0.5, pady=0.5)
       
-        phongban_entry = tk.Entry(self.danh_sach_form_frame, font=self.default_font2, width=25)
+        phongban_entry = ttk.Entry(self.danh_sach_form_frame, font=self.placeholder_font, width=27)
+        phongban_entry.config(foreground="grey")
         phongban_entry.grid(row=row, column=5, padx=0.5, pady=0.5)
+        phongban_entry.insert(0, self.placeholder_text)
+        phongban_entry.bind("<FocusIn>", lambda event: self.clear_placeholder(event, self.placeholder_text))
+        phongban_entry.bind("<FocusOut>", lambda event: self.set_placeholder(event, self.placeholder_text))
+
         
-        delete_button = tk.Button(self.danh_sach_form_frame, text="Xóa", command=lambda: self.delete_form_entry(id), font=self.button_font2, fg="red")
+        delete_button = tk.Button(self.danh_sach_form_frame, text="Xóa", command=lambda: self.delete_form_entry(id), font=self.button_font2, fg="#FF0000")
         delete_button.grid(row=row, column=6, padx=0.5, pady=0.5)
 
         # self.form_entries.append((id_label, ten_form_entry, action_menu, thoi_gian_entry, nhom_nguoi_dung_entry, phongban_entry, delete_button))
         self.form_entries.append((id_label, ten_form_entry, action_menu, thoi_gian_entry, self.nguoidung_menu, phongban_entry, delete_button))
 
         self.update_luan_chuyen_menus()
+        
+    def clear_placeholder(self, event, placeholder):
+        if event.widget.get() == placeholder:
+            event.widget.delete(0, tk.END)
+            event.widget.config(foreground="black", font=self.input_font)
 
-    
+    def set_placeholder(self, event, placeholder):
+        if event.widget.get() == "":
+            event.widget.insert(0, placeholder)
+            event.widget.config(foreground="grey", font=self.placeholder_font)
+                
     def delete_form_entry(self, id):
         for entry in self.form_entries:
             if entry[0].cget("text") == str(id):
@@ -894,7 +1040,6 @@ subprocess.Popen([destination])
             entry[0].config(text=str(idx + 1))
             for widget in entry:
                 widget.grid_configure(row=idx + 1)
-
     
     def add_luan_chuyen_entry(self):
         row = len(self.luan_chuyen_entries) + 1
@@ -902,28 +1047,28 @@ subprocess.Popen([destination])
         from_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Từ Form", font=self.default_font2)
         from_form_label.grid(row=row, column=0, padx=0.5, pady=0.5)
 
-        from_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        from_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font3, state='readonly')
         from_form_menu.grid(row=row, column=1, padx=0.5, pady=0.5)
 
         to_form_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến Form", font=self.default_font2)
         to_form_label.grid(row=row, column=2, padx=0.5, pady=0.5)
 
-        to_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        to_form_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font3, state='readonly')
         to_form_menu.grid(row=row, column=3, padx=0.5, pady=0.5)
 
         to_form_2_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến Form 2", font=self.default_font2)
         to_form_2_label.grid(row=row, column=4, padx=0.5, pady=0.5)
 
-        to_form_2_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        to_form_2_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font3, state='readonly')
         to_form_2_menu.grid(row=row, column=5, padx=0.5, pady=0.5)
         
         to_form_3_label = tk.Label(self.danh_sach_luan_chuyen_frame, text="Đến Form 3", font=self.default_font2)
         to_form_3_label.grid(row=row, column=6, padx=0.5, pady=0.5)
 
-        to_form_3_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font2, state='readonly')
+        to_form_3_menu = ttk.Combobox(self.danh_sach_luan_chuyen_frame, values=[form[1].get() for form in self.form_entries], font=self.default_font3, state='readonly')
         to_form_3_menu.grid(row=row, column=7, padx=0.5, pady=0.5)
 
-        delete_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Xóa", command=lambda: self.delete_luan_chuyen_entry(row), font=self.button_font2, fg="red")
+        delete_button = tk.Button(self.danh_sach_luan_chuyen_frame, text="Xóa", command=lambda: self.delete_luan_chuyen_entry(row), font=self.button_font2, fg="#FF0000")
         delete_button.grid(row=row, column=8, padx=0.5, pady=0.5)
 
         self.luan_chuyen_entries.append((from_form_label, from_form_menu, to_form_label, to_form_menu, to_form_2_label, to_form_2_menu, to_form_3_label, to_form_3_menu, delete_button))
@@ -967,6 +1112,9 @@ subprocess.Popen([destination])
             thoi_gian = entry[3].get()
             nhom_nguoi_dung = entry[4].get()
             phongban = entry[5].get()
+            # Kiểm tra và loại bỏ placeholder
+            if phongban == self.placeholder_text:
+                phongban = ""  # Loại bỏ placeholder
             quy_trinh_data.append([tthc,ten_quy_trinh, bi_danh, id, ten_form, action, thoi_gian, nhom_nguoi_dung, phongban ])
 
         luan_chuyen_data = []

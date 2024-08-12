@@ -7,6 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.action_chains import ActionChains
+from webdriver_manager.chrome import ChromeDriverManager
+import shutil
 from datetime import datetime, timedelta
 import time
 import tkinter as tk
@@ -225,7 +227,6 @@ class App:
                 self.update_label.config(text="Đang tải bản cập nhật...")
                 self.root.update_idletasks()
                 
-                # temp_update_path = "temp_update.exe"  # Đường dẫn tạm cho file cập nhậ
                 
                 with open(temp_update_path, 'wb') as file:
                     for chunk in response.iter_content(chunk_size=8192):
@@ -304,20 +305,40 @@ subprocess.Popen([destination])
         self.stop_flag = True
 
     def start_automation(self):
-        
-        
-        # Xác định đường dẫn của ChromeDriver
+
+        # if getattr(sys, 'frozen', False):
+        #     chromedriver_path = os.path.join(sys._MEIPASS, "chromedriver.exe")
+        # else:
+        #     # Sử dụng WebDriver Manager để kiểm tra và tải về ChromeDriver mới nhất phù hợp
+        #     chromedriver_path = ChromeDriverManager().install()  
+
+
+        # Kiểm tra xem ứng dụng có được đóng gói thành file .exe không
         if getattr(sys, 'frozen', False):
+            # Sử dụng ChromeDriver đã được đóng gói cùng với ứng dụng
             chromedriver_path = os.path.join(sys._MEIPASS, "chromedriver.exe")
         else:
-            chromedriver_path = "chromedriver.exe"
+            # Đường dẫn tới cache của WebDriver Manager
+            cache_path = os.path.join(os.path.expanduser("~"), ".wdm")
+            
+            # Xóa cache để đảm bảo luôn tải về phiên bản mới nhất
+            if os.path.exists(cache_path):
+                shutil.rmtree(cache_path)
+            
+            # Sử dụng WebDriver Manager để kiểm tra và tải về ChromeDriver mới nhất phù hợp
+            chromedriver_path = ChromeDriverManager().install()
 
-        
-        # Khởi tạo trình duyệt
-        driver = webdriver.Chrome(chromedriver_path) 
+        # Khởi tạo dịch vụ Chrome
+        service = Service(chromedriver_path)
+
+        # Khởi tạo trình duyệt Chrome
+        driver = webdriver.Chrome(service=service)
+
         # Đặt kích thước cửa sổ trình duyệt
         driver.set_window_size(1920, 1080)
-      
+
+
+
         df = pd.read_excel(self.file_path)
         
         try:
@@ -328,19 +349,16 @@ subprocess.Popen([destination])
                     print("Đang dừng quá trình tự động hóa...")
                     break
 
-                url = row['URL']
+                url = str(row['URL'])
                 next_year = datetime.now().year +1
                 now_year = datetime.now().year
                 value1 = row['admin']
                 value2 = row['pass']
                 donvi = row['Đơn vị']
                 chuyentrangthai = row['Chuyển trạng thái hồ sơ']
-                # for hs_index, hs_row in df.iterrows():
-                #     chuyentrangthai = hs_row['Chuyển trạng thái hồ sơ']
-                #     break
                                 
                 # Đường dẫn đồng bộ TTC
-                value3 = url + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewDanhMucThuTucChung"
+                value3 = url  + "/group/guest/danh-muc?p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewDanhMucThuTucChung"
                 
                 # Đường dẫn đồng bộ DVC
                 value4 = url + "/group/guest/danh-muc?p_auth=LxgJHKS6&p_p_id=DanhMuc_WAR_ctonegateportlet&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_DanhMuc_WAR_ctonegateportlet_javax.portlet.action=viewDanhMucThuTuc"
@@ -402,8 +420,15 @@ subprocess.Popen([destination])
                 quockhanh_to = row['Nghỉ 2/9 đến'] #nghỉ Quốc khánh đến
                 if isinstance(quockhanh_to, pd.Timestamp):
                     quockhanh_to = quockhanh_to.strftime('%d/%m/%Y')
-
+                
+                # Kiểm tra xem URL có hợp lệ không
+                if not url.startswith("http"):
+                    print(f"Invalid URL: {url}")
+                else:
+                    print(f"Navigating to: {url}")
+    
                 driver.get(url)
+
                 login_id = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.ID, "_58_login")))
                 login_id.send_keys(value1)
@@ -704,7 +729,7 @@ subprocess.Popen([destination])
                     sync_button = WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.XPATH, '//a[@onclick="dongBoThuTuc();"]')))
                     sync_button.click()
-                    time.sleep(40)
+                    time.sleep(45)
                     
                 #Thao tac sao chép sổ văn bản
                 if self.checkbox_copysovb_var.get():
@@ -780,7 +805,7 @@ subprocess.Popen([destination])
                     else:
                         print("Nút Cập nhật không khả dụng để nhấn")
                     print(f"Đã chuyển trạng thái...")
-                    time.sleep(2)
+                    time.sleep(1)
                 
                 # Thao tác cấu hình nghỉ lễ
                 if self.checkbox_offnamsau_var.get():
