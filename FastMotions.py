@@ -306,13 +306,6 @@ subprocess.Popen([destination])
 
     def start_automation(self):
 
-        # if getattr(sys, 'frozen', False):
-        #     chromedriver_path = os.path.join(sys._MEIPASS, "chromedriver.exe")
-        # else:
-        #     # Sử dụng WebDriver Manager để kiểm tra và tải về ChromeDriver mới nhất phù hợp
-        #     chromedriver_path = ChromeDriverManager().install()  
-
-
         # Kiểm tra xem ứng dụng có được đóng gói thành file .exe không
         if getattr(sys, 'frozen', False):
             # Sử dụng ChromeDriver đã được đóng gói cùng với ứng dụng
@@ -421,13 +414,13 @@ subprocess.Popen([destination])
                 if isinstance(quockhanh_to, pd.Timestamp):
                     quockhanh_to = quockhanh_to.strftime('%d/%m/%Y')
                 
-                # Kiểm tra xem URL có hợp lệ không
-                if not url.startswith("http"):
+
+                # Kiểm tra URL có hợp lệ không (loại bỏ NaT, None, và không phải chuỗi)
+                if pd.isna(url) or url == 'NaT' or not isinstance(url, str) or not url.startswith(("http://", "https://")):
                     print(f"Invalid URL: {url}")
                 else:
                     print(f"Navigating to: {url}")
-    
-                driver.get(url)
+                    driver.get(url)
 
                 login_id = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.ID, "_58_login")))
